@@ -360,4 +360,196 @@ Please review the AC list. Approve / correct:
 - §10.5 Non-functional (15 AC) — paid-API 6-layer + credentials + cosign + license + offline + supply-chain hygiene OK?
 - §10.6 Coverage matrix — Phase α criterion ↔ AC mapping accurate?
 
-After approve, Stage 3 Design kickoff (module boundaries lock + ADRs 0001 stack / 0002 compliance format / 0003 vuln-cache / 0004 SBOM format support / 0005 module boundary / 0006 Phase α exit gate).
+After approve, Stage 3 Design kickoff (module boundaries lock + ADRs 0002-0007).
+
+---
+
+## §11. Design (Stage 3)
+
+> **Status**: drafted 2026-05-19, awaiting user approve gate
+> **Mode**: Boundary-First per `spec-driven-workflow` Stage 3, ADR-driven rationale
+
+### §11.1 Module structure (final lock per ADR-0006)
+
+5-layer architecture with one-way dependency direction:
+
+```
+┌────────────────────────────────────────────────────┐
+│  Layer 5 — CLI            src/cli/ + bin/          │
+├────────────────────────────────────────────────────┤
+│  Layer 4 — Emitters       src/emitters/            │
+│    spdx-2.3 / cyclonedx-1.5 / sarif-2.1.0          │
+│    compliance/{appi-26-2,meti-sbom-v2,ntia,eu-cra} │
+├────────────────────────────────────────────────────┤
+│  Layer 3 — Scanners       src/scanners/            │
+│    vuln-db (OSV cache + refresh)                   │
+│    correlator (component ↔ advisory)               │
+│    severity (ranking + dedupe)                     │
+├────────────────────────────────────────────────────┤
+│  Layer 2 — IR             src/ir/                  │
+│    sbom-ir (Component / Relationship / IR)         │
+│    zod schemas for IR validation                   │
+├────────────────────────────────────────────────────┤
+│  Layer 1 — Parsers        src/parsers/             │
+│    npm / pnpm / pip / go-mod                       │
+│    spdx-reader / cyclonedx-reader (read → IR)      │
+└────────────────────────────────────────────────────┘
+
+  Side modules:
+    src/providers/llm/     Ollama + mock + paid-stub
+    src/schemas/           vendored JSON schemas
+    src/util/              atomic write, ANSI strip, credential scrubber
+    src/exit-codes.ts      sysexits enum
+```
+
+Dependency direction (enforced by dependency-cruiser lint at CI):
+
+```
+CLI → Emitters → IR ← Scanners ← Parsers
+           ↓        ↑
+        Providers  Util
+```
+
+Detailed rationale + forbidden edges: ADR-0006.
+
+### §11.2 Data flow (end-to-end, F-001 + F-002 + F-003 happy path)
+
+```
+1. CLI parses argv → subcommand router
+2. Subcommand calls parser layer:
+   project-dir → detected manifest → Parser → IR
+3. (optional) Scanner layer:
+   IR + cached OSV DB → correlator → findings
+4. Emitter layer:
+   IR (+ findings) → format-specific emitter → atomic write or stdout
+5. CLI prints exit code (sysexits-aligned) + stderr summary
+```
+
+Per-subcommand layer usage:
+
+| Subcommand | Parser | Scanner | Emitter |
+| --- | --- | --- | --- |
+| `sbom`   | ✅ | — | SPDX / CycloneDX |
+| `scan`   | ✅ (or read existing SBOM) | ✅ | SARIF / human summary |
+| `report` | ✅ (or read existing SBOM/findings) | ⚠️ optional | compliance/* |
+| `suggest` | — | — | LLM provider (Ollama default) |
+
+### §11.3 ADR index (Stage 3 deliverables)
+
+| ADR | Topic | Status |
+| --- | --- | --- |
+| [0001](docs/adr/0001-prior-art-audit.md) | Prior-art adoption audit (syft + grype) | Accepted (Stage 1.5) |
+| [0002](docs/adr/0002-stack-typescript.md) | Stack = TypeScript + pnpm + vitest + commander + zod | Accepted |
+| [0003](docs/adr/0003-compliance-reporter-format.md) | Per-standard subcommand + vendored regulation snippets | Accepted |
+| [0004](docs/adr/0004-vuln-cache-architecture.md) | Offline-first vuln cache with atomic refresh | Accepted |
+| [0005](docs/adr/0005-sbom-format-ir.md) | Internal IR + dual emitter (SPDX 2.3 + CycloneDX 1.5) | Accepted |
+| [0006](docs/adr/0006-module-boundary.md) | 5-layer architecture with one-way dependency direction | Accepted |
+| [0007](docs/adr/0007-phase-alpha-exit-gate.md) | Writer/Reviewer pattern with 7-binary canonical rubric | Accepted |
+
+### §11.4 File tree (target shape post-Stage 4)
+
+```
+sbom-pilot/
+├── LICENSE
+├── NOTICE                                # license attribution per AC-NF-license-attribution
+├── README.md
+├── SECURITY.md
+├── CHANGELOG.md
+├── CLAUDE.md
+├── spec.md
+├── tasks.md                              # Stage 4 deliverable
+├── package.json
+├── pnpm-lock.yaml
+├── tsconfig.json
+├── tsconfig.build.json
+├── vitest.config.ts
+├── .dependency-cruiser.cjs               # lint config per ADR-0006
+├── .pre-commit-config.yaml
+├── .editorconfig
+├── .gitignore
+├── .npmrc
+├── bin/
+│   └── sbom-pilot.ts                     # shebang entrypoint
+├── src/
+│   ├── cli/
+│   │   ├── index.ts
+│   │   ├── exit-codes.ts                 # sysexits enum
+│   │   └── subcommands/{sbom,scan,report,suggest}.ts
+│   ├── parsers/
+│   │   ├── npm.ts / pnpm.ts / pip.ts / go-mod.ts
+│   │   └── spdx-reader.ts / cyclonedx-reader.ts
+│   ├── ir/
+│   │   ├── sbom-ir.ts
+│   │   └── schemas.ts                    # zod
+│   ├── scanners/
+│   │   ├── vuln-db.ts                    # OSV cache + refresh
+│   │   ├── correlator.ts
+│   │   └── severity.ts
+│   ├── emitters/
+│   │   ├── _shared.ts                    # atomic + citation + severity
+│   │   ├── spdx-2.3.ts / cyclonedx-1.5.ts / sarif-2.1.0.ts
+│   │   └── compliance/
+│   │       ├── _shared.ts
+│   │       ├── regulation-snippets/
+│   │       │   └── {appi-26-2,meti-sbom-v2,ntia,eu-cra}.ts
+│   │       └── {appi-26-2,meti-sbom-v2,ntia,eu-cra}.ts
+│   ├── providers/llm/
+│   │   ├── ollama.ts / mock.ts / paid-stub.ts
+│   │   └── paid-defense.ts               # 6-layer (AC-NF-1..6)
+│   ├── schemas/                          # vendored JSON Schema files
+│   │   ├── spdx-2.3.json
+│   │   ├── cyclonedx-1.5.json
+│   │   └── sarif-2.1.0.json
+│   └── util/
+│       ├── atomic-write.ts
+│       ├── ansi-strip.ts
+│       └── credential-scrub.ts           # AC-NF-credentials
+├── tests/
+│   ├── unit/                             # per-module
+│   ├── e2e/                              # subcommand smokes
+│   ├── golden/                           # fixed inputs → fixed outputs
+│   │   ├── sbom/{spdx-2.3,cyclonedx-1.5}/
+│   │   └── compliance/{appi-26-2,meti-sbom-v2,ntia,eu-cra}/
+│   └── fixtures/                         # synthetic projects + injected credentials
+├── scripts/
+│   ├── check_forbidden_tokens.py         # channel B mask pre-commit
+│   ├── refresh_vuln_db.ts                # one-shot refresh runner
+│   └── benchmark.ts                      # measure 1k-component scan time
+├── docs/
+│   ├── adr/                              # 0001-0007 + future
+│   └── maintenance/                      # regulation-snippet refresh process
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                        # 3-OS matrix + audit + drift-check
+│   │   ├── scorecard.yml                 # OpenSSF Scorecard monitoring
+│   │   ├── dependabot-auto-merge.yml
+│   │   └── codeql.yml
+│   └── dependabot.yml
+└── .claude/
+    ├── internal_notes.md                 # gitignored, channel B mask list
+    └── memory_bank/{activeContext,logbook,decisionLog,productContext,systemPatterns}.md
+```
+
+### §11.5 Design tradeoffs (consolidated, ADR cross-ref)
+
+| Tradeoff | Rationale | ADR |
+| --- | --- | --- |
+| TS not Go | Velocity + sibling reuse | 0002 |
+| 4 separate compliance emitters not unified | Separation of concerns, easy +1 standard | 0003 |
+| OSV.dev single source not NVD+GHSA | Free public bulk export, aggregator already | 0004 |
+| Internal IR not direct dual emit | Avoid duplicate parser walks, enable round-trip | 0005 |
+| 5 layers not flat / not hexagonal | Legibility for Phase α scale | 0006 |
+| Writer/Reviewer pattern not single-AI | Drift defense, documented failure mode | 0007 |
+| Reference-only adoption of syft/grype not vendoring | License clarity, supply-chain hygiene | 0001 |
+
+### §11.6 Design approve gate
+
+Please review and approve:
+
+- §11.1 Module structure (5 layers + dependency direction) OK?
+- §11.2 Data flow (per-subcommand layer usage) OK?
+- §11.3 ADR index (0001-0007) — all 7 ADRs read + accepted?
+- §11.4 File tree — target shape OK? any path to rename?
+- §11.5 Tradeoff consolidation — accurate?
+
+After approve, Stage 4 Tasks (`tasks.md`) drafting kickoff — L0-L9 breakdown with ~35-40 tasks, each mapped to one or more AC IDs.

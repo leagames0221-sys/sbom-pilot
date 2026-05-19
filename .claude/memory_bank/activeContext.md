@@ -4,20 +4,19 @@
 
 ## Current phase
 
-**Stage 2 — Requirements (EARS)** drafted 2026-05-19, awaiting user approve gate (Stage 1.5 audit cleared with both syft + grype Adopt verdict)
+**Stage 3 — Design** drafted 2026-05-19, awaiting user approve gate (Stage 2 EARS cleared with 38 AC across F-001/2/3/5 + NF, user explicit OK + 無料 + クレカ不要 + ローカル LLM + セキュリティ強化 constraints reaffirmed)
 
 ## Current focus
 
-- spec.md §10 (Stage 2 Requirements) drafted: 38 EARS-formatted AC across F-001 (8) + F-002 (7) + F-003 (8) + F-005 (5) + NF (10)
-- §10.5.1 paid-API 6-layer defense AC-NF-1..6 locked
-- §10.5.2 ADR-0001 lessons propagated as AC-NF-credentials + AC-NF-cosign-gate + AC-NF-license-attribution
-- §10.6 Phase α exit criterion ↔ AC coverage matrix verified (7/7 covered)
+- spec.md §11 (Stage 3 Design) drafted: 5-layer module structure + data flow + ADR index + file tree + tradeoff consolidation
+- 6 new ADRs landed (0002-0007): stack / compliance / vuln cache / SBOM format IR / module boundary / Phase α exit gate
+- decisionLog renumbered: D-004 → ADR-0002, D-006 → ADR-0003, D-015..D-020 added for Stage 2 + Stage 3 lock decisions
 
 ## Immediate next action
 
-1. Commit Stage 2 spec.md + push
-2. User approve gate on §10 EARS
-3. Stage 3 Design kickoff (module boundaries + ADRs 0001-0006) after clearance
+1. Commit Stage 3 spec.md §11 + 6 ADR + memory_bank + push
+2. User approve gate on Stage 3 Design (§11.6 5 review items)
+3. Stage 4 Tasks (`tasks.md`) drafting after clearance — L0-L9 breakdown ~35-40 task with AC mapping
 
 ## Open questions for user
 

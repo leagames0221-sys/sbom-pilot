@@ -51,7 +51,14 @@
   - §10.5 Non-functional: 15 AC (paid-API 6-layer 1-6, credential-scrub, cosign-gate, license attribution, offline-first, cross-OS, pinned deps, audit-gate, engine-strict, no-credential-read)
 - §10.6 Phase α exit criterion ↔ AC coverage matrix verified 7/7
 
+## 2026-05-19 — Stage 2 EARS cleared + Stage 3 Design drafted
+
+- User cleared Stage 2 EARS 2026-05-19 with constraint reaffirmation: 無料 + クレカ情報不要範囲 + ローカル LLM (Ollama) + セキュリティ強化。 これらは AC-NF-1..6 + AC-NF-credentials + AC-NF-cosign-gate + AC-NF-no-credential-read で既 encode 済、 全件継続遵守。
+- 6 ADR landed: 0002 stack TS / 0003 compliance reporter format / 0004 vuln cache offline-first / 0005 SBOM format IR / 0006 module boundary 5-layer / 0007 Phase α exit gate Writer-Reviewer
+- spec.md §11 Stage 3 Design section drafted: 5-layer module structure diagram + data flow + per-subcommand layer usage + ADR index + target file tree + tradeoff consolidation
+- decisionLog updated: D-004 → ADR-0002 ref fixed, D-006 → ADR-0003 ref fixed, D-015..D-020 added (Stage 2/3 lock decisions)
+
 ### Carry-over for next session
 
-- Awaiting user approve gate on §10 (Stage 2 EARS)
-- After clearance: Stage 3 Design (module boundaries lock + ADRs 0001 stack / 0002 compliance format / 0003 vuln-cache / 0004 SBOM format support / 0005 module boundary / 0006 Phase α exit gate)
+- Awaiting user approve gate on Stage 3 Design (§11.6 5 review items)
+- After clearance: Stage 4 Tasks (`tasks.md`) drafting — L0-L9 breakdown ~35-40 task with AC mapping
