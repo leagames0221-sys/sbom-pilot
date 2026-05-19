@@ -87,3 +87,24 @@
 - L2..L9 remaining: 36 tasks, estimated ~18-22 hours wall-time at 1 task = 1 commit cadence
 - All approve gates on Stage 1-4 + ADR-0001 cleared; Phase 1 implementation has user OK to proceed
 - Writer/Reviewer verify round + Phase α gate at T-40 (final task)
+
+## 2026-05-19 — Phase 1 L1 IR COMPLETE (3 commits)
+
+- User OK at L1 着手 gate (継続 OK / 同 stack 継続 OK / subtleties 4 件 internalize 済)
+- L1 IR 3/3 tasks landed sequentially:
+  - T-05 851e849: src/ir/sbom-ir.ts (8 exported types per ADR-0005) + 12 expectTypeOf specs
+  - T-06 4201152: src/ir/schemas.ts (7 zod schemas, all .strict()) + 17 specs (5 positive / 10 negative / 2 spot)
+  - T-07 c853756: src/ir/index.ts barrel + tests/golden/ir/round-trip.test.ts (3 fixture × round-trip + determinism + undefined-leak canary + negative-corruption, 8 specs)
+- Test totals: 94 specs in 8 files, all PASS, suite ~2.4 s
+- Notable subtleties resolved:
+  - tsconfig `exactOptionalPropertyTypes: true` requires IR optional fields declared as `?: T | undefined`, not `?: T`. zod `.optional()` produces `T | undefined` inferred type; the original ADR-0005 shape `?: T` was tightened by tsc strictness. Widened in T-06 sub-edit, ADR-0005 §Decision semantics preserved (optional = absent OR explicit undefined).
+  - All zod object schemas use `.strict()` — unknown keys rejected. Forward-compat additive fields require explicit IR-version bump per ADR-0005 §Reversibility.
+  - `_typeCheck` bidirectional cast block in schemas.ts is the drift canary between sbom-ir.ts and schemas.ts: if either side adds/renames a field, tsc surfaces the mismatch.
+- L1 covers AC: ADR-0005 (IR shape + reversibility), AC-001-1/2/5/6/7/8 (SBOM emission + schema validation precondition + license expression + deterministic namespace)
+
+### Carry-over for next session
+
+- L2 Parsers (T-08..T-12) kickoff: npm + pnpm + pip + go-mod + dispatch
+- L2 introduces the first new runtime dep adoption: `yaml` package for pnpm-lock parse (T-09) — per project rule, run a prior-art security audit + obtain user OK gate before `pnpm add yaml`
+- L1 closure baseline: main HEAD `c853756`, working tree clean, origin synced, 94 specs PASS, tsc strict green
+- Remaining 33 tasks across L2-L9 (~18-22 hours)
