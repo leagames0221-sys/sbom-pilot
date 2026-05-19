@@ -33,10 +33,10 @@ import { atomicWrite } from '../util/atomic-write.js';
  * `limit` is informational.
  */
 export interface OsvRangeEvent {
-  introduced?: string;
-  fixed?: string;
-  last_affected?: string;
-  limit?: string;
+  introduced?: string | undefined;
+  fixed?: string | undefined;
+  last_affected?: string | undefined;
+  limit?: string | undefined;
 }
 
 export interface OsvRange {
