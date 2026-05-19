@@ -4,21 +4,22 @@
 
 ## Current phase
 
-**Stage 4 — Tasks** drafted 2026-05-19, awaiting user approve gate (Stage 3 Design cleared 2026-05-19 with 6 ADR 0002-0007 + spec.md §11 module structure)
+**Phase 1 implementation — L0 Foundation COMPLETE 2026-05-19** (4/4 tasks). Stage 4 user-cleared. Next: L1 IR (T-05..T-07).
 
-## Current focus
+## L0 Foundation completion summary (4 commits on main)
 
-- tasks.md drafted: 40 tasks across L0-L9 (Foundation → IR → Parsers → Schemas → SBOM emitters → Scanning+SARIF → Compliance → Providers → CLI → CI+Verify)
-- Each task carries Boundary + Depends + AC ref + Verify per spec-driven-workflow Stage 4 convention
-- AC ↔ Task matrix verified: every AC has at least one implementation task
-- Phase α exit checklist literal embedded
-- Implementation estimate: ~20-26 hours total, 1 task = 1 commit cadence
+- T-01 `c8bebcc`: package.json + tsconfig{,.build}.json + vitest.config.ts + .npmrc + pnpm-workspace.yaml + pnpm-lock.yaml + src/index.ts stub
+- T-02 `bfc9b06`: src/exit-codes.ts (11 sysexits constants) + 15-spec test
+- T-03 `96034f5`: src/util/{atomic-write,ansi-strip,credential-scrub}.ts + 35-spec tests (7+11+17)
+- T-04 (this commit): scripts/check_forbidden_tokens.py + 7-spec mask-script test
+
+Test count: 57 specs across 5 files, all PASS, suite runtime ~2.3 s.
 
 ## Immediate next action
 
-1. Commit tasks.md + push
-2. User approve gate on Stage 4 (§Stage 4 approve gate, 4 review items)
-3. Phase 1 implementation kickoff at T-01 after clearance — sequential commits, Writer/Reviewer round at T-40
+1. Commit T-04 + memory_bank update + push
+2. L0 closure status report to user
+3. L1 IR (T-05..T-07) kickoff after user OK
 
 ## Open questions for user
 
