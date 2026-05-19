@@ -20,11 +20,7 @@ import {
   parseNodeMajor,
   readPackageVersion,
 } from '../../src/cli/version.js';
-import {
-  EX_CONFIG,
-  EX_OK,
-  EX_TEMPFAIL,
-} from '../../src/exit-codes.js';
+import { EX_CONFIG, EX_OK } from '../../src/exit-codes.js';
 
 interface CapturedRun {
   stdout: string[];
@@ -152,16 +148,3 @@ describe('runCli — --version + --help (AC-005-5)', () => {
   });
 });
 
-describe('runCli — remaining stub subcommand actions (report + suggest land at T-31)', () => {
-  it('report <dir> emits "not yet implemented" + EX_TEMPFAIL', async () => {
-    const out = await runCaptured(['report', '/tmp/x']);
-    expect(out.exitCode).toBe(EX_TEMPFAIL);
-    expect(out.stderr.join('\n')).toContain('report: not yet implemented');
-  });
-
-  it('suggest <id> emits "not yet implemented" + EX_TEMPFAIL', async () => {
-    const out = await runCaptured(['suggest', 'GHSA-x']);
-    expect(out.exitCode).toBe(EX_TEMPFAIL);
-    expect(out.stderr.join('\n')).toContain('suggest: not yet implemented');
-  });
-});

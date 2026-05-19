@@ -13,10 +13,7 @@
  * Spec mapping: AC-005-1, AC-005-3, AC-005-5, ADR-0006.
  */
 import { Command } from 'commander';
-import {
-  EX_CONFIG,
-  EX_TEMPFAIL,
-} from '../exit-codes.js';
+import { EX_CONFIG } from '../exit-codes.js';
 import {
   checkNodeEngine,
   formatVersionLine,
@@ -24,6 +21,14 @@ import {
 } from './version.js';
 import { sbomAction, type SbomCommandOptions } from './subcommands/sbom.js';
 import { scanAction, type ScanCommandOptions } from './subcommands/scan.js';
+import {
+  reportAction,
+  type ReportCommandOptions,
+} from './subcommands/report.js';
+import {
+  suggestAction,
+  type SuggestCommandOptions,
+} from './subcommands/suggest.js';
 
 export interface CliRunOptions {
   /**
@@ -39,24 +44,6 @@ export interface CliRunOptions {
   stderr?: (line: string) => void;
   /** Injected exit handler; tests assert on it instead of killing the process. */
   exit?: (code: number) => void;
-}
-
-/**
- * Stub action used by all four subcommands at T-29 scope. Calls the
- * injected exit handler with EX_TEMPFAIL so a future test that
- * forgets to wire a real action surfaces the gap loudly.
- */
-function stubAction(
-  subcommand: string,
-  stderr: (line: string) => void,
-  exit: (code: number) => void,
-): () => void {
-  return () => {
-    stderr(
-      `sbom-pilot ${subcommand}: not yet implemented (T-30/T-31 wiring pending).`,
-    );
-    exit(EX_TEMPFAIL);
-  };
 }
 
 /**
@@ -111,7 +98,11 @@ export function buildProgram(options: CliRunOptions): Command {
       'Regulation: appi-26-2 | meti-sbom-v2 | ntia | eu-cra (omit to list available standards).',
     )
     .option('-o, --output <path>', 'Write the report to <path> atomically.')
-    .action(stubAction('report', stderr, exit));
+    .option('--vuln-db <path>', 'Path to the OSV vuln-db cache (appi-26-2 uses it for priority findings).')
+    .option('--sbom-format <fmt>', 'SBOM format hint for eu-cra (spdx-2.3 or cyclonedx-1.5).')
+    .action(async (projectDir: string, cmdOptions: ReportCommandOptions) => {
+      await reportAction(projectDir, cmdOptions, { stdout, stderr, exit });
+    });
 
   program
     .command('suggest')
@@ -119,9 +110,11 @@ export function buildProgram(options: CliRunOptions): Command {
     .argument('<advisory-id>', 'Advisory id (e.g. GHSA-xxxx-yyyy-zzzz) or component name.')
     .option(
       '-p, --provider <name>',
-      'LLM provider: mock | ollama | anthropic | openai (default: mock).',
+      'LLM provider: mock | ollama | anthropic | openai (default: try ollama, fall back to mock).',
     )
-    .action(stubAction('suggest', stderr, exit));
+    .action(async (advisoryId: string, cmdOptions: SuggestCommandOptions) => {
+      await suggestAction(advisoryId, cmdOptions, { stdout, stderr, exit });
+    });
 
   // Commander writes to its own stdout/stderr by default; reroute when
   // injected so tests can assert against captured output.
