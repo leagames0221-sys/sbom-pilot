@@ -1,0 +1,49 @@
+{
+  "name": "sbom-pilot",
+  "version": "0.1.0",
+  "description": "Defensive-first CLI: SBOM (SPDX/CycloneDX) + offline-first vulnerability scan + JP/US/EU compliance reports for individual developers and SMBs",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "author": "tomohiro takada",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leagames0221-sys/sbom-pilot"
+  },
+  "bin": {
+    "sbom-pilot": "dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "audit": "pnpm audit --audit-level=high",
+    "lint:deps": "depcruise --config .dependency-cruiser.cjs src tests scripts",
+    "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build"
+  },
+  "packageManager": "pnpm@10.33.4",
+  "dependencies": {
+    "commander": "^13.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
