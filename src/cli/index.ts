@@ -22,6 +22,8 @@ import {
   formatVersionLine,
   readPackageVersion,
 } from './version.js';
+import { sbomAction, type SbomCommandOptions } from './subcommands/sbom.js';
+import { scanAction, type ScanCommandOptions } from './subcommands/scan.js';
 
 export interface CliRunOptions {
   /**
@@ -81,7 +83,9 @@ export function buildProgram(options: CliRunOptions): Command {
     .argument('<project-dir>', 'Path to the project directory (npm / pnpm / pip / go).')
     .option('-f, --format <format>', 'Output format: spdx | cyclonedx', 'spdx')
     .option('-o, --output <path>', 'Write to <path> atomically instead of stdout.')
-    .action(stubAction('sbom', stderr, exit));
+    .action(async (projectDir: string, cmdOptions: SbomCommandOptions) => {
+      await sbomAction(projectDir, cmdOptions, { stdout, stderr, exit });
+    });
 
   program
     .command('scan')
@@ -93,7 +97,10 @@ export function buildProgram(options: CliRunOptions): Command {
       'Comma-separated severity levels that cause non-zero exit (e.g. "critical,high").',
     )
     .option('--refresh', 'Refresh the local vuln-db cache before scanning.')
-    .action(stubAction('scan', stderr, exit));
+    .option('--vuln-db <path>', 'Path to the OSV vuln-db cache (overrides the default location).')
+    .action(async (projectDir: string, cmdOptions: ScanCommandOptions) => {
+      await scanAction(projectDir, cmdOptions, { stdout, stderr, exit });
+    });
 
   program
     .command('report')

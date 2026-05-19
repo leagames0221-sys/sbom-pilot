@@ -152,19 +152,7 @@ describe('runCli — --version + --help (AC-005-5)', () => {
   });
 });
 
-describe('runCli — stub subcommand actions', () => {
-  it('sbom <dir> emits "not yet implemented" + EX_TEMPFAIL exit code', async () => {
-    const out = await runCaptured(['sbom', '/tmp/x']);
-    expect(out.exitCode).toBe(EX_TEMPFAIL);
-    expect(out.stderr.join('\n')).toContain('sbom-pilot sbom: not yet implemented');
-  });
-
-  it('scan <dir> emits "not yet implemented" + EX_TEMPFAIL', async () => {
-    const out = await runCaptured(['scan', '/tmp/x']);
-    expect(out.exitCode).toBe(EX_TEMPFAIL);
-    expect(out.stderr.join('\n')).toContain('scan: not yet implemented');
-  });
-
+describe('runCli — remaining stub subcommand actions (report + suggest land at T-31)', () => {
   it('report <dir> emits "not yet implemented" + EX_TEMPFAIL', async () => {
     const out = await runCaptured(['report', '/tmp/x']);
     expect(out.exitCode).toBe(EX_TEMPFAIL);
