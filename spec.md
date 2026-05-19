@@ -260,4 +260,104 @@ After approve, sequential progression:
 - **Q3 — Stage 1.5 audit gate model**: ✅ **user-review through** gate before Stage 2 (security audit + user approval principle for any third-party adoption). Red flag (1 件でも) → 採用見送り default、 user explicit override required.
 - **Q4 — Phase α exit criteria**: ✅ **7-binary full apply** locked. Scoped subset rejected (rubric §axis-invent forbidden). See §7.
 
-Stage 1.5 prior-art adoption audit (`docs/adr/0001-prior-art-audit.md`) kickoff after this commit.
+Stage 1.5 prior-art adoption audit (`docs/adr/0001-prior-art-audit.md`) completed 2026-05-19, user-approved (4/4 ✅). syft + grype both adopted as reference-only seeds + opt-in cosign-gated subprocess.
+
+---
+
+## §10. Requirements (Stage 2, EARS-formatted)
+
+> **Status**: drafted 2026-05-19, awaiting user approve gate
+> **Convention**: each AC = WHEN/WHILE/IF/WHERE + THE SYSTEM SHALL + observable behavior. AC IDs are stable across stages; Stage 4 tasks reference these IDs in their `_AC:_` annotation.
+
+### §10.1 F-001 — SBOM generation
+
+- **AC-001-1**: WHEN the user runs `sbom-pilot sbom <project-dir>` THE SYSTEM SHALL detect at least one supported package manifest (initial matrix: `package.json` + `pnpm-lock.yaml`, `package-lock.json`, `requirements.txt` + `pip` lockfile, `go.mod` + `go.sum`) and emit a valid SPDX 2.3 JSON document to stdout within 30 seconds on a 1k-dependency project on consumer laptop.
+- **AC-001-2**: WHEN the user passes `--format cyclonedx` THE SYSTEM SHALL emit a valid CycloneDX 1.5 JSON document instead of SPDX 2.3, with the same component coverage.
+- **AC-001-3**: WHEN the user passes `--output <path>` THE SYSTEM SHALL write the SBOM atomically (temp + rename) to that path and return exit code 0 on success.
+- **AC-001-4**: IF the input directory contains no recognised package manifest THEN THE SYSTEM SHALL exit with sysexits `EX_DATAERR` (65) and a single-line diagnostic naming the searched manifest patterns.
+- **AC-001-5**: WHERE the SBOM emitter produces a SPDX 2.3 document THE SYSTEM SHALL validate the document against the official SPDX 2.3 JSON schema (vendored at `src/schemas/spdx-2.3.json`) before emission, refusing to write a non-validating document.
+- **AC-001-6**: WHERE the SBOM emitter produces a CycloneDX 1.5 document THE SYSTEM SHALL validate against the official CycloneDX 1.5 JSON schema (vendored at `src/schemas/cyclonedx-1.5.json`) before emission.
+- **AC-001-7**: WHEN the SBOM contains a dependency with a known SPDX license identifier THE SYSTEM SHALL populate the `licenseConcluded` field (SPDX) / `licenses[*].license.id` field (CycloneDX) using the canonical SPDX License ID (per the SPDX License List).
+- **AC-001-8**: WHEN the SBOM is generated THE SYSTEM SHALL include the `documentNamespace` / `serialNumber` field set to a deterministic URN derived from the project + git HEAD hash (when the project is a git repo), so two runs at the same HEAD produce byte-identical SBOMs.
+
+### §10.2 F-002 — Vulnerability scan
+
+- **AC-002-1**: WHEN the user runs `sbom-pilot scan <sbom-path-or-project-dir>` THE SYSTEM SHALL correlate each component against the cached OSV.dev snapshot and emit a finding list (severity + CVE/GHSA ID + affected versions + patched versions when known) within 30 seconds on a 1k-component SBOM.
+- **AC-002-2**: WHILE no `--refresh` flag is passed THE SYSTEM SHALL operate entirely offline, using only the locally cached vulnerability database snapshot under `~/.cache/sbom-pilot/vuln-db/` (or the OS-appropriate cache dir).
+- **AC-002-3**: WHEN the user passes `--refresh` THE SYSTEM SHALL fetch the latest OSV.dev snapshot over HTTPS, verify its integrity (checksum or signature per OSV.dev guidance), atomically replace the cache, and proceed with scanning.
+- **AC-002-4**: WHEN the user passes `--format sarif` THE SYSTEM SHALL emit findings as a SARIF v2.1.0 document validating against the vendored SARIF schema.
+- **AC-002-5**: IF any finding has severity `critical` or `high` AND `--fail-on critical,high` flag is passed THEN THE SYSTEM SHALL exit with sysexits `EX_SOFTWARE` (70); otherwise exit 0 regardless of finding count.
+- **AC-002-6**: WHERE a finding has a known fix version THE SYSTEM SHALL include a `remediation.suggestedUpgrade` field naming the lowest patched version.
+- **AC-002-7**: WHEN the scan completes THE SYSTEM SHALL print a summary footer to stderr listing finding counts by severity, regardless of `--format` (stdout = machine-readable findings, stderr = human summary).
+
+### §10.3 F-003 — Compliance reports (4 regulations)
+
+- **AC-003-1**: WHEN the user runs `sbom-pilot report --standard appi-26-2 <sbom-or-findings-path>` THE SYSTEM SHALL emit a 改正個情法 26-2 incident-reporting evidence document (日本語) including: 該当 dependency / CVE / version / affected period / suggested remediation, formatted to attach to the 個人情報保護委員会 reporting template.
+- **AC-003-2**: WHEN the user runs `sbom-pilot report --standard meti-sbom-v2 <sbom-path>` THE SYSTEM SHALL validate the SBOM against the METI SBOM 導入手引き v2.0 minimum-field set (component name / version / supplier / license / hash / dependency relationship / SBOM author / timestamp) and emit a 日本語 field-by-field validator report with PASS/FAIL per field.
+- **AC-003-3**: WHEN the user runs `sbom-pilot report --standard ntia <sbom-path>` THE SYSTEM SHALL emit an English NTIA Minimum Elements compliance summary listing the 7 mandatory fields per artifact and their PASS/FAIL state.
+- **AC-003-4**: WHEN the user runs `sbom-pilot report --standard eu-cra <sbom-path>` THE SYSTEM SHALL emit an English EU Cyber Resilience Act Annex I compliance checklist (machine-readable SBOM format presence + vulnerability handling pointers) and verify the SBOM is in CycloneDX 1.5 format (CRA-preferred) — refusing with `EX_USAGE` (64) if SBOM is SPDX-only.
+- **AC-003-5**: WHERE a compliance report cites a regulation THE SYSTEM SHALL include the regulation version + retrieval date (e.g. `METI SBOM 導入手引き v2.0, 2024-08`) in a citation footer.
+- **AC-003-6**: IF the user runs `sbom-pilot report` without `--standard` THEN THE SYSTEM SHALL list the 4 available standards (appi-26-2, meti-sbom-v2, ntia, eu-cra) with one-line descriptions and exit `EX_USAGE` (64).
+- **AC-003-7**: WHEN `--standard appi-26-2` is selected AND the SBOM contains dependencies with high/critical CVEs THE SYSTEM SHALL flag those as priority-disclosure items in the output (top of report, separate section).
+- **AC-003-8**: WHEN a compliance report is generated THE SYSTEM SHALL emit it atomically (temp + rename) and verify the byte-output is valid UTF-8 with no BOM.
+
+### §10.4 F-005 — CLI UX
+
+- **AC-005-1**: WHEN the user runs `sbom-pilot --help` THE SYSTEM SHALL print a usage summary listing 4 subcommands (`sbom`, `scan`, `report`, `suggest`) + global flags within 100ms on consumer laptop.
+- **AC-005-2**: WHEN the user runs an unrecognised subcommand (`sbom-pilot xyz`) THE SYSTEM SHALL print a "did you mean: …" suggestion using Levenshtein-distance ranking and exit `EX_USAGE` (64).
+- **AC-005-3**: WHEN the Node version is < 20 LTS THE SYSTEM SHALL refuse to start, print the required version, and exit `EX_CONFIG` (78).
+- **AC-005-4**: WHERE the CLI writes to stdout AND stdout is a TTY THE SYSTEM SHALL strip ANSI escape sequences and C0 control chars from any user-supplied content before emission (output-sanitization layer).
+- **AC-005-5**: WHEN the user passes `--version` THE SYSTEM SHALL print the package version + the git commit hash baked at build time, and exit 0.
+
+### §10.5 Non-functional requirements
+
+#### §10.5.1 Paid-API 6-layer defense
+
+- **AC-NF-1 (Constructor gate)**: IF a paid LLM provider client is constructed without both `<PROVIDER>_API_KEY` env-var AND `SBOM_PILOT_LLM_PROVIDER=<provider>` env-var THEN THE SYSTEM SHALL refuse construction and raise a non-retryable error.
+- **AC-NF-2 (Pre-flight reserve)**: WHEN a paid LLM request is about to dispatch THE SYSTEM SHALL check 3 ceilings (token-count / request-count / cost-estimate) against env-var-configured limits; IF any limit would be exceeded THEN THE SYSTEM SHALL refuse the request without dispatch.
+- **AC-NF-3 (Key non-leak)**: WHEN a paid LLM provider error is surfaced THE SYSTEM SHALL mask the API key to its first 6 characters + `…` in any log / error message / stack trace.
+- **AC-NF-4 (CI auto-call ban)**: WHILE tests are running (`NODE_ENV=test` or vitest detected) THE SYSTEM SHALL throw on any un-stubbed `fetch` call to a paid LLM provider domain.
+- **AC-NF-5 (Default mock)**: WHEN the user runs any CLI subcommand without explicitly setting `SBOM_PILOT_LLM_PROVIDER` THE SYSTEM SHALL auto-fallback to the mock provider; no paid request shall be dispatched.
+- **AC-NF-6 (Credit-card-required service ZERO)**: WHERE this PJ adds any external dependency THE SYSTEM SHALL verify the dependency has a free tier sufficient for the project's usage; IF the dependency requires a credit card to enable any used feature THEN adoption is refused.
+
+#### §10.5.2 Credential / cosign / license (lessons from ADR-0001)
+
+- **AC-NF-credentials**: WHEN the report or sbom emitter writes to file or stdout THE SYSTEM SHALL scrub registry credentials and known-credential-pattern substrings (`Bearer …`, `password=…`, `_KEY=…`, `_TOKEN=…`, `_SECRET=…`, AWS access key ID `AKIA[0-9A-Z]{16}`) before emission; a regression test SHALL inject a synthetic credential into input fixtures and assert ZERO leakage in output JSON.
+- **AC-NF-cosign-gate**: WHEN the user passes `--use-syft` or `--use-grype` THE SYSTEM SHALL verify the spawned binary's cosign signature against the published Anchore public key before invocation; IF verification fails THEN refuse with `EX_NOPERM` (77).
+- **AC-NF-license-attribution**: WHERE Anchore prior-art has informed an implementation module THE SYSTEM SHALL include a `NOTICE` file entry citing the Apache-2.0 origin per the License's §4 attribution requirement.
+
+#### §10.5.3 Offline-first / cross-OS / supply-chain hygiene
+
+- **AC-NF-offline**: WHILE no `--refresh` flag is passed AND the cache exists THE SYSTEM SHALL operate with zero outbound network calls (verified by a test that intercepts `fetch` / `node:net` and asserts no connection attempts).
+- **AC-NF-cross-os**: WHERE CI runs THE SYSTEM SHALL execute the full test matrix on Linux, macOS, and Windows, with all paths normalised via `node:path` (no string concatenation of separators).
+- **AC-NF-pinned-deps**: WHEN dependencies are installed THE SYSTEM SHALL use only the committed lockfile (`pnpm-lock.yaml`); CI SHALL run `pnpm install --frozen-lockfile` and fail on drift.
+- **AC-NF-audit-gate**: WHEN CI runs THE SYSTEM SHALL fail on `pnpm audit --audit-level=high` (any high or critical advisory blocks merge).
+- **AC-NF-engine-strict**: WHEN dependencies are installed THE SYSTEM SHALL enforce Node 20 LTS minimum via `engines.node` + `.npmrc` `engine-strict=true`.
+- **AC-NF-no-credential-read**: WHILE the CLI runs THE SYSTEM SHALL NOT read from `.env`, `~/.aws/credentials`, `~/.npmrc`, `~/.docker/config.json`, or any other credential file path by default; opt-in is only via explicit CLI flag (none planned for Phase α).
+
+### §10.6 Coverage matrix (AC ↔ Phase α exit criterion)
+
+| Phase α criterion | AC IDs |
+| --- | --- |
+| 1. Working code + tests + CI green | AC-001-1..8, AC-002-1..7, AC-003-1..8, AC-005-1..5 |
+| 2. Quality README documentation | (covered by docs work, no functional AC) |
+| 3. Original work, not forked | AC-001-* + AC-002-* + AC-003-* (all self-implemented) |
+| 4. Recent + consistent activity | (covered by commit cadence, no functional AC) |
+| 5. Technical breadth + depth with rationale | AC-NF-* + ADR-0001..0006 |
+| 6. Domain knowledge / real problem solved | AC-003-1..8 (4-regulation compliance) |
+| 7. Security + honest framing + AI-era awareness | AC-NF-1..6 + AC-NF-credentials + AC-NF-cosign-gate + AC-NF-license-attribution + AC-NF-offline + AC-NF-audit-gate + AC-NF-no-credential-read |
+
+→ All 7 binary criteria have AC coverage. Stage 4 task breakdown will map each task to one or more AC IDs.
+
+### §10.7 EARS approve gate (Stage 2)
+
+Please review the AC list. Approve / correct:
+
+- §10.1 F-001 SBOM generation (8 AC) — manifest matrix OK? format coverage OK?
+- §10.2 F-002 Vuln scan (7 AC) — OSV.dev as single DB source OK? `--fail-on` exit-code policy OK?
+- §10.3 F-003 Compliance reports (8 AC) — 4-regulation per-standard subcommand pattern OK?
+- §10.4 F-005 CLI UX (5 AC) — sysexits-aligned exit codes OK?
+- §10.5 Non-functional (15 AC) — paid-API 6-layer + credentials + cosign + license + offline + supply-chain hygiene OK?
+- §10.6 Coverage matrix — Phase α criterion ↔ AC mapping accurate?
+
+After approve, Stage 3 Design kickoff (module boundaries lock + ADRs 0001 stack / 0002 compliance format / 0003 vuln-cache / 0004 SBOM format support / 0005 module boundary / 0006 Phase α exit gate).

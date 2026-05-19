@@ -4,19 +4,20 @@
 
 ## Current phase
 
-**Stage 1.5 — Prior-art adoption audit** (Stage 1 Discovery approved 2026-05-19, locked decisions Cut A + TypeScript + user-review through gate + 7-binary full apply)
+**Stage 2 — Requirements (EARS)** drafted 2026-05-19, awaiting user approve gate (Stage 1.5 audit cleared with both syft + grype Adopt verdict)
 
 ## Current focus
 
-- ADR-0001 drafted: syft + grype both 8/8 gates PASS = Adopt verdict
-- Adoption shape locked: reference-only at design + opt-in subprocess with cosign gate (default = pure TypeScript, no external binary dependency)
-- Domain lesson captured from CVE-2025-65965: credential-scrub mandatory at all emitter boundaries (propagate to Stage 2 EARS as AC-NF-credentials)
+- spec.md §10 (Stage 2 Requirements) drafted: 38 EARS-formatted AC across F-001 (8) + F-002 (7) + F-003 (8) + F-005 (5) + NF (10)
+- §10.5.1 paid-API 6-layer defense AC-NF-1..6 locked
+- §10.5.2 ADR-0001 lessons propagated as AC-NF-credentials + AC-NF-cosign-gate + AC-NF-license-attribution
+- §10.6 Phase α exit criterion ↔ AC coverage matrix verified (7/7 covered)
 
 ## Immediate next action
 
-1. Commit ADR-0001 + push
-2. User review gate on ADR-0001 (4 explicit ✅/❌ items, see ADR §User review gate)
-3. Stage 2 Requirements (EARS) drafting after clearance
+1. Commit Stage 2 spec.md + push
+2. User approve gate on §10 EARS
+3. Stage 3 Design kickoff (module boundaries + ADRs 0001-0006) after clearance
 
 ## Open questions for user
 

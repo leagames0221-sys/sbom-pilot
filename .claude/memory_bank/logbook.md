@@ -40,7 +40,18 @@
 - Domain lesson captured: CVE-2025-65965 credential-disclosure pattern → AC-NF-credentials mandatory in Stage 2 EARS (D-013 added to decisionLog)
 - Adoption shape: reference-only at design + opt-in subprocess with cosign verification (D-014)
 
+## 2026-05-19 — Stage 1.5 cleared + Stage 2 EARS drafted
+
+- User cleared ADR-0001 (4/4 ✅): syft + grype adopted as reference-only seeds + opt-in cosign-gated subprocess, EARS propagation approved
+- spec.md §10 Stage 2 Requirements drafted: 38 EARS-formatted AC
+  - §10.1 F-001 SBOM generation: 8 AC (multi-manifest detection, dual-format SPDX/CycloneDX, atomic write, schema validation, SPDX License ID canonicalization, deterministic SBOM namespace)
+  - §10.2 F-002 Vulnerability scan: 7 AC (OSV.dev cache, offline default, --refresh flag, SARIF output, --fail-on policy, remediation hints, dual-stream output)
+  - §10.3 F-003 Compliance reports: 8 AC (改正個情法 26-2 / METI v2.0 / NTIA / EU CRA, per-standard subcommand, versioned regulation citation footer)
+  - §10.4 F-005 CLI UX: 5 AC (--help, did-you-mean, Node-version gate, ANSI strip, --version)
+  - §10.5 Non-functional: 15 AC (paid-API 6-layer 1-6, credential-scrub, cosign-gate, license attribution, offline-first, cross-OS, pinned deps, audit-gate, engine-strict, no-credential-read)
+- §10.6 Phase α exit criterion ↔ AC coverage matrix verified 7/7
+
 ### Carry-over for next session
 
-- Awaiting user review gate on ADR-0001 (4 explicit ✅/❌ items at the end of the ADR)
-- After clearance: Stage 2 Requirements (EARS-formatted F-001..F-005 + NF-N) drafting
+- Awaiting user approve gate on §10 (Stage 2 EARS)
+- After clearance: Stage 3 Design (module boundaries lock + ADRs 0001 stack / 0002 compliance format / 0003 vuln-cache / 0004 SBOM format support / 0005 module boundary / 0006 Phase α exit gate)
