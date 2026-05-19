@@ -58,7 +58,16 @@
 - spec.md §11 Stage 3 Design section drafted: 5-layer module structure diagram + data flow + per-subcommand layer usage + ADR index + target file tree + tradeoff consolidation
 - decisionLog updated: D-004 → ADR-0002 ref fixed, D-006 → ADR-0003 ref fixed, D-015..D-020 added (Stage 2/3 lock decisions)
 
+## 2026-05-19 — Stage 3 Design cleared + Stage 4 Tasks drafted
+
+- User cleared Stage 3 Design 2026-05-19 (6 ADR + spec.md §11 5-layer module structure)
+- tasks.md landed: 40 tasks across L0 Foundation (4) + L1 IR (3) + L2 Parsers (5) + L3 Schemas (2) + L4 SBOM Emitters (3) + L5 Scanning+SARIF (4) + L6 Compliance (5) + L7 Providers (2) + L8 CLI (4) + L9 CI+Verify (8)
+- Each task carries Boundary + Depends + AC ref + Verify per spec-driven-workflow Stage 4 convention
+- AC ↔ Task matrix verified: 38 AC all mapped, Phase α exit checklist literal embedded
+- Implementation estimate: ~20-26 hours total wall-time, 1 task = 1 commit cadence
+
 ### Carry-over for next session
 
-- Awaiting user approve gate on Stage 3 Design (§11.6 5 review items)
-- After clearance: Stage 4 Tasks (`tasks.md`) drafting — L0-L9 breakdown ~35-40 task with AC mapping
+- Awaiting user approve gate on Stage 4 (4 review items)
+- After clearance: Phase 1 implementation T-01 kickoff (package.json + tsconfig + vitest config)
+- Writer/Reviewer verify round at T-40 (final task)

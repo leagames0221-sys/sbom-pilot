@@ -4,19 +4,21 @@
 
 ## Current phase
 
-**Stage 3 — Design** drafted 2026-05-19, awaiting user approve gate (Stage 2 EARS cleared with 38 AC across F-001/2/3/5 + NF, user explicit OK + 無料 + クレカ不要 + ローカル LLM + セキュリティ強化 constraints reaffirmed)
+**Stage 4 — Tasks** drafted 2026-05-19, awaiting user approve gate (Stage 3 Design cleared 2026-05-19 with 6 ADR 0002-0007 + spec.md §11 module structure)
 
 ## Current focus
 
-- spec.md §11 (Stage 3 Design) drafted: 5-layer module structure + data flow + ADR index + file tree + tradeoff consolidation
-- 6 new ADRs landed (0002-0007): stack / compliance / vuln cache / SBOM format IR / module boundary / Phase α exit gate
-- decisionLog renumbered: D-004 → ADR-0002, D-006 → ADR-0003, D-015..D-020 added for Stage 2 + Stage 3 lock decisions
+- tasks.md drafted: 40 tasks across L0-L9 (Foundation → IR → Parsers → Schemas → SBOM emitters → Scanning+SARIF → Compliance → Providers → CLI → CI+Verify)
+- Each task carries Boundary + Depends + AC ref + Verify per spec-driven-workflow Stage 4 convention
+- AC ↔ Task matrix verified: every AC has at least one implementation task
+- Phase α exit checklist literal embedded
+- Implementation estimate: ~20-26 hours total, 1 task = 1 commit cadence
 
 ## Immediate next action
 
-1. Commit Stage 3 spec.md §11 + 6 ADR + memory_bank + push
-2. User approve gate on Stage 3 Design (§11.6 5 review items)
-3. Stage 4 Tasks (`tasks.md`) drafting after clearance — L0-L9 breakdown ~35-40 task with AC mapping
+1. Commit tasks.md + push
+2. User approve gate on Stage 4 (§Stage 4 approve gate, 4 review items)
+3. Phase 1 implementation kickoff at T-01 after clearance — sequential commits, Writer/Reviewer round at T-40
 
 ## Open questions for user
 
