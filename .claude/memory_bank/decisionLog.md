@@ -11,9 +11,11 @@
 | D-001 | 2026-05-19 | Adopt 4-stage Spec-Driven Workflow (Discovery → Requirements EARS → Design → Tasks) | TBD | Active |
 | D-002 | 2026-05-19 | License = MIT | (LICENSE) | Active |
 | D-003 | 2026-05-19 | Channel B framing strict, initial commit PRIVATE, PUBLIC flip gated on canonical tier verify | (CLAUDE.md) | Active |
-| D-004 | 2026-05-19 | Stack final lock deferred to Stage 1 Discovery ADR-0001 (TS vs Go) | ADR-0001 (pending) | Open |
+| D-004 | 2026-05-19 | **Stack LOCKED = TypeScript** (user-approved single route, 1.5-day velocity + sibling reuse leverage) | ADR-0001 (pending Stage 3) | **Active** |
 | D-005 | 2026-05-19 | Pre-commit hardening = base hooks + gitleaks + forbidden-token-mask (mask script wired at Stage 4) | (.pre-commit-config.yaml) | Active |
-| D-006 | 2026-05-19 | JP-compliance scope candidates = 改正個情法 26-2 + METI SBOM v2.0 + NTIA Minimum Elements + EU CRA Annex I (final cut at Discovery) | ADR-0002 (pending) | Open |
+| D-006 | 2026-05-19 | **JP/US/EU compliance scope LOCKED = Cut A (4 全件)** = 改正個情法 26-2 + METI SBOM v2.0 + NTIA Minimum Elements + EU CRA Annex I | ADR-0002 (pending Stage 3) | **Active** |
+| D-011 | 2026-05-19 | **Stage 1.5 audit gate model LOCKED = user-review through** (Red flag 1 件でも → 採用見送り default, user explicit override required) | spec.md §9 Q3 | Active |
+| D-012 | 2026-05-19 | **Phase α exit criteria LOCKED = 7-binary full apply** (canonical tier rubric, scoped subset rejected) | spec.md §7 + §9 Q4 | Active |
 | D-007 | 2026-05-19 | paid-API 6-layer defense intact, sibling pattern inherit | (CLAUDE.md) | Active |
 | D-008 | 2026-05-19 | LLM provider default = Ollama local `gemma3:4b`, mock fallback always available | (CLAUDE.md) | Active |
 | D-009 | 2026-05-19 | Offline-first vuln DB cache, network egress opt-in via explicit `--refresh` flag | ADR-0003 (pending) | Open |

@@ -1,8 +1,8 @@
 # sbom-pilot — Specification (Stage 1 Discovery output)
 
-> **Status**: Stage 1 Discovery — awaiting user approve gate
+> **Status**: Stage 1 Discovery — **APPROVED 2026-05-19** (user clearance, all 4 questions confirmed at recommended single-route)
 > **Workflow**: 4-stage Spec-Driven Development (Discovery → Requirements (EARS) → Design → Tasks)
-> **Last updated**: 2026-05-19
+> **Last updated**: 2026-05-19 (Stage 1 closure + locked decisions)
 
 ---
 
@@ -115,15 +115,17 @@ Each tool above before any adoption (vendor / depend / fork) must literal pass:
 - **Article 13** / **Annex I §1-2**: machine-readable SBOM mandatory for products with digital elements placed on the EU market
 - **sbom-pilot output**: CycloneDX 1.5 (CRA-preferred machine-readable format per [ENISA guidance](https://www.enisa.europa.eu/)) + Annex I compliance checklist report, English
 
-### §4.5 Final cut decision needed at approve gate
+### §4.5 Final cut — LOCKED at Stage 1 approve gate (2026-05-19)
 
-| Cut option | scope | dev cost | portfolio value |
-| --- | --- | --- | --- |
-| **Cut A (recommended)**: 4 全件 (改正個情法 + METI + NTIA + EU CRA) | full | ~+4 hours over base | wide JP + intl niche |
-| Cut B: JP 2 only (改正個情法 + METI) | narrower | base | JP-only niche |
-| Cut C: NTIA + EU CRA only (intl, no JP) | narrower | base | intl-only, loses JP wedge |
+**Cut A: 4 全件** (改正個情法 + METI + NTIA + EU CRA) — user-approved single route.
 
-→ Recommended single route: **Cut A**. Dev cost increment is modest (compliance reports are mostly templated text + field validation, not novel logic); portfolio value of being the only tool with 4-regulation literal coverage is high.
+| Cut option | scope | dev cost | portfolio value | verdict |
+| --- | --- | --- | --- | --- |
+| **Cut A**: 4 全件 (改正個情法 + METI + NTIA + EU CRA) | full | ~+4 hours over base | wide JP + intl niche | ✅ **LOCKED** |
+| Cut B: JP 2 only (改正個情法 + METI) | narrower | base | JP-only niche | ❌ rejected (narrower wedge) |
+| Cut C: NTIA + EU CRA only (intl, no JP) | narrower | base | intl-only, loses JP wedge | ❌ rejected (no JP wedge) |
+
+Rationale: dev cost increment is modest (compliance reports are mostly templated text + field validation, not novel logic); portfolio value of being the only tool with 4-regulation literal coverage is high.
 
 ---
 
@@ -159,9 +161,9 @@ Each tool above before any adoption (vendor / depend / fork) must literal pass:
 
 **Estimated dev time**: 3 days from Stage 1 approve to Strong-Hire tier ★ verify
 
-### §5.3 Recommended single route
+### §5.3 LOCKED at Stage 1 approve gate (2026-05-19)
 
-**Stack = TypeScript (Option A)**.
+**Stack = TypeScript (Option A)** — user-approved single route.
 
 Rationale (calibrated honesty marker ★★ = moderate confidence):
 - 1.5-day vs 3-day dev velocity differential is decisive given user-stated 1–2 day target timeline
@@ -251,11 +253,11 @@ After approve, sequential progression:
 
 ---
 
-## §9. Open questions for user (final approve gate input)
+## §9. Open questions — RESOLVED 2026-05-19 (Stage 1 approve gate clearance)
 
-- **Q1**: Compliance scope cut — A (4 全件 recommended) / B (JP only) / C (intl only) ?
-- **Q2**: Stack — TypeScript single-route (recommended) / Go preferred ?
-- **Q3**: Should Stage 1.5 prior-art adoption audit gate user-review syft+grype audit verdict before Stage 2, or auto-proceed if Scorecard ≥ 7 ?
-- **Q4**: Phase α exit criteria — full 7-binary apply (recommended) or scoped subset for faster ship ?
+- **Q1 — Compliance scope cut**: ✅ **Cut A (4 全件)** locked. See §4.5.
+- **Q2 — Stack**: ✅ **TypeScript single-route** locked. See §5.3. ADR-0001 at Stage 3 Design.
+- **Q3 — Stage 1.5 audit gate model**: ✅ **user-review through** gate before Stage 2 (security audit + user approval principle for any third-party adoption). Red flag (1 件でも) → 採用見送り default、 user explicit override required.
+- **Q4 — Phase α exit criteria**: ✅ **7-binary full apply** locked. Scoped subset rejected (rubric §axis-invent forbidden). See §7.
 
-Awaiting answers to lock §4 / §5 / §7 finally before Stage 1.5 audit kickoff.
+Stage 1.5 prior-art adoption audit (`docs/adr/0001-prior-art-audit.md`) kickoff after this commit.
