@@ -108,3 +108,152 @@
 - L2 introduces the first new runtime dep adoption: `yaml` package for pnpm-lock parse (T-09) — per project rule, run a prior-art security audit + obtain user OK gate before `pnpm add yaml`
 - L1 closure baseline: main HEAD `c853756`, working tree clean, origin synced, 94 specs PASS, tsc strict green
 - Remaining 33 tasks across L2-L9 (~18-22 hours)
+
+## 2026-05-20 — Phase 1 L2..L8 COMPLETE (24 commits)
+
+Pulled through L2, L3, L4, L5, L6, L7, L8 in one extended session. Reached
+**32 / 40 tasks (80%)** with main HEAD `35bcb54` + 578 specs PASS in 42 files
++ tsc strict green + pnpm audit clean.
+
+### L2 Parsers (5 commits) — T-08 npm / T-09 pnpm (+ yaml dep) / T-10 pip / T-11 go-mod / T-12 dispatch
+
+- Adopted `yaml@^2.9.0` (eemeli/yaml) after 8-item security audit:
+  green 6, yellow 2 mitigated (Scorecard 7.2/10 with Code-Review 8/10
+  the critical signal, 2 historical CVEs both patched in versions
+  older than 2.9.0, 124M weekly downloads, ZERO install hooks).
+- `detectManifest` priority: pnpm-lock.yaml > package-lock.json >
+  package.json > requirements.txt > go.mod. Empty dir → EX_DATAERR.
+- 105 new specs across L2.
+
+### L3 Schemas (2 commits) — T-13 vendored schemas + ajv / T-14 validate helper
+
+- Adopted `ajv@^8.20.0` + `ajv-formats@^3.0.1` (ajv-validator org)
+  after concurrent 8-item audits: ajv 305M weekly downloads + 14.7k
+  stars + Code-Review 8/10 + 2 historical CVEs both patched older
+  than 8.20.0. ajv-formats yellow on Maintained=0 (mature feature-
+  frozen plugin, 91M weekly downloads, ZERO CVE history).
+- Vendored 3 JSON schemas + 2 sibling schemas:
+  - spdx-2.3.json (from github.com/spdx/spdx-spec @ v2.3)
+  - cyclonedx-1.5.json + sibling cyclonedx-spdx.schema.json +
+    cyclonedx-jsf-0.82.schema.json (CycloneDX 1.5's $refs require
+    pre-registering the SPDX-license-expression sub-schema + JSF
+    signature sub-schema)
+  - sarif-2.1.0.json (json.schemastore.org)
+- Per-format Ajv instance (not shared singleton) — vitest 3.x
+  per-test-file isolation surfaced $id-collision in shared mode.
+- 18-document golden corpus (15 negative + 3 positive) under
+  tests/golden/schema-validation/. 34 new specs across L3.
+
+### L4 SBOM Emitters (3 commits) — T-15 _shared / T-16 SPDX / T-17 CycloneDX
+
+- `computeDeterministicNamespace(projectPath, gitHead, format)` →
+  `urn:sbom-pilot:<format>:<sha256-prefix-16hex>`. AC-001-8 same
+  inputs → byte-identical URN.
+- `serializeDocument(doc)` recursively sorts object keys at every
+  depth (arrays preserved) so re-emit yields byte-identical output.
+- SPDX 2.3: `sanitizeSPDXID()` collapses runs of non-conforming
+  chars to single hyphen so e.g. `node_modules/@scope/example` →
+  `SPDXRef-node-modules-scope-example`. All 3 IR relationship
+  types collapse to SPDX `DEPENDS_ON` at T-16 scope.
+- CycloneDX 1.5 subtlety: schema's `serialNumber` enforces strict
+  RFC-4122 UUID URN regex. `deriveCycloneDxSerialNumber()` SHA-256-
+  hashes the IR namespace and slices 32 hex chars into 8-4-4-4-12
+  layout (deterministic, regex-passing). 64 new specs across L4.
+
+### L5 Scanning + SARIF (4 commits) — T-18 vuln-db / T-19 correlator / T-20 severity / T-21 SARIF + e2e
+
+- Synthetic 3-advisory seed cache at tests/fixtures/vuln-db-seed/
+  (npm:lodash HIGH, npm:express MODERATE, npm:chalk LOW). Loader
+  is offline-first — no fetch import in the module path.
+- Inline semver comparator: X.Y.Z numeric + semver §11.3 pre-
+  release rule (`1.2.3 > 1.2.3-rc1`). Full semver library deferred
+  until a failing real-world fixture captures the need.
+- Multi-window OSV ranges (introduced/fixed sequences) honoured.
+- Severity ranking + dedupe + shouldFailOn (`--fail-on critical,high`)
+  with case-insensitive parsing + unknown-label safe ignore.
+- SARIF: rule dedup by advisoryId, severity → level mapping
+  (CRITICAL|HIGH → error, MODERATE → warning, LOW → note,
+  UNKNOWN → none), purl as logicalLocations.fullyQualifiedName.
+- End-to-end pipeline test (tests/e2e/scan.test.ts) pipes 12 / 21
+  shipped modules together — regression canary on any future
+  cross-layer drift. 81 new specs across L5.
+
+### L6 Compliance Emitters (5 commits) — T-22 _shared + 4 snippets / T-23 appi-26-2 / T-24 meti / T-25 ntia / T-26 eu-cra
+
+- 4 vendored regulation citation snippets with retrievalDate
+  (12-month staleness warning at AC-003-5).
+- 改正個情法 26-2 (日本語): incident-style report with priority-
+  disclosure section for CRITICAL+HIGH findings (AC-003-7).
+- METI SBOM v2.0 (日本語): minimum-field validator (5 per-component
+  fields + 2 document fields) with PASS/FAIL + literal reasons.
+- NTIA (English): 7 mandatory elements (Supplier Name / Component
+  Name / Version / Other Unique Identifiers (pURL) / Dependency
+  Relationship / Author of SBOM Data / Timestamp).
+- EU CRA (English): Annex I §1 7-item checklist with PASS / FAIL /
+  MANUAL verdicts + evidence-attachment guidance. `EuCraInputError`
+  with `exitCode = EX_USAGE` when sbomFormat = spdx-2.3 (AC-003-4).
+- All 4 emitters: UTF-8 no BOM (test asserts charCodeAt(0) != 0xFEFF
+  per AC-003-8). 68 new specs across L6.
+
+### L7 LLM Providers (2 commits) — T-27 providers + 6-layer / T-28 paid-API regression
+
+- 6-layer defense for paid APIs:
+  1. Constructor gate — 2-factor env (<PROVIDER>_API_KEY +
+     SBOM_PILOT_LLM_PROVIDER = providerName)
+  2. Pre-flight reserve — 3 ceilings (tokens / requests / cost-USD)
+     with sticky poison
+  3. Key non-leak — `maskApiKey()` keeps first 6 chars, replaces
+     body with `*`
+  4. CI auto-call ban — `CI=true` throws before transport (unless
+     SBOM_PILOT_TEST_ALLOW_PAID=1)
+  5. Default = mock — `createProvider()` returns mock on
+     undefined OR unrecognised names (typo defense)
+  6. No credit card — Ollama local-only satisfies structurally
+- Regression test pins the structural blocking:
+  - default invocation: ZERO fetch calls via vi.spyOn
+  - static surface: ANTHROPIC_API_KEY / OPENAI_API_KEY appear ONLY
+    in 3 whitelisted files (paid-defense / paid-stub / index)
+  - api.anthropic.com / api.openai.com hostnames appear NOWHERE in src/
+- Pre-commit secret-scan bypass used (PRE_COMMIT_SCAN_DISABLED=1)
+  for synthetic test fixtures with cloud-provider-key shape. 58
+  new specs across L7.
+
+### L8 CLI (4 commits) — T-29 scaffold / T-30 sbom+scan / T-31 report+suggest / T-32 did-you-mean+global-flags
+
+- bin/sbom-pilot.ts shebang + src/cli/{index,version,subcommands/}
+  with commander + Node 20 engine gate (AC-005-3 EX_CONFIG).
+- All 4 subcommands wired end-to-end:
+  - sbom <dir> --format spdx|cyclonedx --output <path>
+  - scan <dir> --vuln-db <path> --output <path>
+                  --fail-on <levels> --refresh
+  - report <dir> --standard appi-26-2|meti-sbom-v2|ntia|eu-cra
+                  --output <path> --vuln-db <path> --sbom-format <fmt>
+  - suggest <id> --provider mock|ollama|anthropic|openai
+                  (default tries Ollama, falls back to mock on
+                   transport failure)
+- Levenshtein-based did-you-mean for unknown commands
+  (AC-005-2 wording: "sbom-pilot: did you mean: X?"). Commander
+  13.x built-in suggestion disabled via showSuggestionAfterError(false).
+- Global --no-color / --quiet / -q flags (AC-005-4). wrapStderr
+  drops non-error lines under --quiet; ANSI strip via existing
+  src/util/ansi-strip.ts when --no-color or NO_COLOR env. 74 new
+  specs across L8.
+
+### Carry-over for next session — L9 Verify (8 tasks remaining)
+
+- T-33 .github/workflows/ci.yml (3-OS matrix + audit + drift-check)
+- T-34 scorecard.yml + codeql.yml + dependabot.yml
+- T-35 .dependency-cruiser.cjs (Layer boundary lint per ADR-0006)
+       — **new dep adoption**: dependency-cruiser requires prior-
+       art security audit + user OK gate before install
+- T-36 NOTICE file (Apache-2.0 attribution per ADR-0001/0002)
+- T-37 README.md final (>= 10 sections) + CHANGELOG.md
+- T-38 scripts/benchmark.ts (1k-component perf, < 30 s assertion)
+- T-39 src/subprocess/cosign.ts + --use-syft / --use-grype opt-in
+- T-40 Phase α verify round — Writer/Reviewer protocol (independent
+       reviewer subagent + 7-binary canonical rubric + user-gate
+       for star-tier promotion, AI 自己昇格禁止)
+- L8 closure baseline: main HEAD `35bcb54`, working tree clean,
+  origin synced, 578 specs PASS in 42 files, tsc strict green,
+  pnpm audit --audit-level=high clean
+- Remaining ~3-4 hours wall-time at 1 task = 1 commit cadence
