@@ -1,0 +1,20 @@
+# Synthetic 5-dependency fixture for pip parser unit tests.
+# Covers the three patterns in tasks.md T-10 Verify:
+#   1. ==pin (exact version)
+#   2. >=range (lower-bound version)
+#   3. hash-pinned (pip-tools / pip --require-hashes lockfile style)
+
+# Pattern 1: ==pin
+flask==3.0.0
+requests==2.31.0
+
+# Pattern 2: >=range (PEP 440 version specifier)
+pydantic>=2.0,<3.0
+
+# Pattern 3: hash-pinned (pip-tools style, multi-line via \\ continuation)
+django==4.2.0 \
+    --hash=sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789 \
+    --hash=sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210
+
+# pep-440 dotted-prerelease form
+sqlalchemy==2.0.30
