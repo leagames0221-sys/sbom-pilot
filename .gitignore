@@ -17,7 +17,10 @@ vendor/
 dist/
 build/
 out/
+# bin/ is gitignored by convention for build output, but our source
+# bin/sbom-pilot.ts is checked in (it's the npm `bin` entrypoint).
 bin/
+!bin/sbom-pilot.ts
 *.tsbuildinfo
 coverage/
 .nyc_output/
