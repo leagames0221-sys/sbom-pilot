@@ -32,8 +32,15 @@
 - `decisionLog.md` D-004 + D-006 moved Open → Active, D-011 + D-012 added
 - Stage 1.5 ADR-0001 (`docs/adr/0001-prior-art-audit.md`) drafting kickoff: 8 gate items × 2 tools (syft + grype) = 16 evidence cells
 
+### Stage 1.5 evidence collected (literal, gh API + scorecard.dev API, 2026-05-19)
+
+- syft: Scorecard 8.0, Apache-2.0, cosign-signed releases (v1.44.0, 2026-05-01), pushed_at 2026-05-18, 8,955 stars, no high/critical CVE, Dependabot + go.sum committed, no red-flag patterns
+- grype: Scorecard 8.2, Apache-2.0, cosign-signed releases (v0.112.0, 2026-05-01), pushed_at 2026-05-18, 12,234 stars, GHSA-6gxw-85q2-q646 (CVE-2025-65965, HIGH) **resolved in v0.104.1** (current v0.112.0 is 8 versions past fix), Dependabot + go.sum committed, no red-flag patterns
+- Both tools = 8/8 gates PASS = Adopt verdict
+- Domain lesson captured: CVE-2025-65965 credential-disclosure pattern → AC-NF-credentials mandatory in Stage 2 EARS (D-013 added to decisionLog)
+- Adoption shape: reference-only at design + opt-in subprocess with cosign verification (D-014)
+
 ### Carry-over for next session
 
-- Awaiting user review gate on Stage 1.5 ADR-0001
-- Red flag detection → user explicit override required before tool adoption
-- Stage 2 Requirements (EARS-formatted F-001..F-005 + NF-N) drafting after Stage 1.5 clearance
+- Awaiting user review gate on ADR-0001 (4 explicit ✅/❌ items at the end of the ADR)
+- After clearance: Stage 2 Requirements (EARS-formatted F-001..F-005 + NF-N) drafting

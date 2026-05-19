@@ -8,18 +8,15 @@
 
 ## Current focus
 
-- Drafting `docs/adr/0001-prior-art-audit.md`:
-  - syft (anchore/syft) — 8 gate item literal evidence collection
-  - grype (anchore/grype) — 8 gate item literal evidence collection
-  - Verdict per tool (Adopt / Adopt-with-mitigations / Reject) + verify trail
-  - Red flag scan (Shai-Hulud / s1ngularity / TeamPCP-class supply-chain patterns)
+- ADR-0001 drafted: syft + grype both 8/8 gates PASS = Adopt verdict
+- Adoption shape locked: reference-only at design + opt-in subprocess with cosign gate (default = pure TypeScript, no external binary dependency)
+- Domain lesson captured from CVE-2025-65965: credential-scrub mandatory at all emitter boundaries (propagate to Stage 2 EARS as AC-NF-credentials)
 
 ## Immediate next action
 
-1. Stage 1.5 ADR drafting (8 gate items × 2 tools = 16 evidence cells)
-2. Commit ADR + push
-3. User review gate on ADR (Red flag detection → user explicit override required)
-4. Stage 2 Requirements (EARS) drafting after audit approve
+1. Commit ADR-0001 + push
+2. User review gate on ADR-0001 (4 explicit ✅/❌ items, see ADR §User review gate)
+3. Stage 2 Requirements (EARS) drafting after clearance
 
 ## Open questions for user
 

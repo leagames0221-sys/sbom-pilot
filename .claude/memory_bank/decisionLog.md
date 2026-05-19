@@ -16,6 +16,8 @@
 | D-006 | 2026-05-19 | **JP/US/EU compliance scope LOCKED = Cut A (4 全件)** = 改正個情法 26-2 + METI SBOM v2.0 + NTIA Minimum Elements + EU CRA Annex I | ADR-0002 (pending Stage 3) | **Active** |
 | D-011 | 2026-05-19 | **Stage 1.5 audit gate model LOCKED = user-review through** (Red flag 1 件でも → 採用見送り default, user explicit override required) | spec.md §9 Q3 | Active |
 | D-012 | 2026-05-19 | **Phase α exit criteria LOCKED = 7-binary full apply** (canonical tier rubric, scoped subset rejected) | spec.md §7 + §9 Q4 | Active |
+| D-013 | 2026-05-19 | **Credential-scrub rule MANDATORY** at all emitter boundaries (lesson from CVE-2025-65965 grype credential disclosure) — propagate to Stage 2 as AC-NF-credentials | ADR-0001 §Gate 6 | Active (pending Stage 2 EARS lock) |
+| D-014 | 2026-05-19 | **syft + grype adoption shape = reference-only at design + opt-in subprocess (cosign-gated)** — pure TypeScript default, no external binary dependency baseline | ADR-0001 §Adoption shape | Active (pending Stage 1.5 user review) |
 | D-007 | 2026-05-19 | paid-API 6-layer defense intact, sibling pattern inherit | (CLAUDE.md) | Active |
 | D-008 | 2026-05-19 | LLM provider default = Ollama local `gemma3:4b`, mock fallback always available | (CLAUDE.md) | Active |
 | D-009 | 2026-05-19 | Offline-first vuln DB cache, network egress opt-in via explicit `--refresh` flag | ADR-0003 (pending) | Open |
