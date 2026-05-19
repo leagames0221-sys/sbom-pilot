@@ -37,6 +37,7 @@
   "packageManager": "pnpm@10.33.4",
   "dependencies": {
     "commander": "^13.0.0",
+    "yaml": "^2.9.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
