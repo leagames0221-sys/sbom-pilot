@@ -58,9 +58,9 @@ export interface ComponentHash {
  * when the manifest is ambiguous.
  */
 export interface LicenseExpression {
-  spdxId?: string;
-  name?: string;
-  expression?: string;
+  spdxId?: string | undefined;
+  name?: string | undefined;
+  expression?: string | undefined;
 }
 
 /**
@@ -75,9 +75,9 @@ export interface Component {
   purl: string;
   name: string;
   version: string;
-  supplier?: string;
-  license?: LicenseExpression;
-  hash?: ComponentHash;
+  supplier?: string | undefined;
+  license?: LicenseExpression | undefined;
+  hash?: ComponentHash | undefined;
   ecosystem: Ecosystem;
 }
 
