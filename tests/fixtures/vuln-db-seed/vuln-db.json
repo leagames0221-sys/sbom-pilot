@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "schemaVersion": "1.0.0",
+    "lastUpdated": "2026-05-15T00:00:00Z",
+    "advisoryCount": 3,
+    "source": "OSV.dev (synthetic seed for unit tests)"
+  },
+  "advisories": [
+    {
+      "id": "GHSA-test-lodash-001",
+      "summary": "Prototype Pollution in lodash (synthetic)",
+      "aliases": ["CVE-2026-99001"],
+      "modified": "2026-04-01T00:00:00Z",
+      "published": "2026-03-15T00:00:00Z",
+      "database_specific": { "severity": "HIGH" },
+      "severity": [
+        { "type": "CVSS_V3", "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H" }
+      ],
+      "affected": [
+        {
+          "package": { "name": "lodash", "ecosystem": "npm", "purl": "pkg:npm/lodash" },
+          "ranges": [
+            {
+              "type": "SEMVER",
+              "events": [
+                { "introduced": "4.0.0" },
+                { "fixed": "4.17.22" }
+              ]
+            }
+          ]
+        }
+      ],
+      "references": [
+        { "type": "ADVISORY", "url": "https://example.com/GHSA-test-lodash-001" }
+      ]
+    },
+    {
+      "id": "GHSA-test-express-002",
+      "summary": "Open redirect in express (synthetic)",
+      "aliases": ["CVE-2026-99002"],
+      "modified": "2026-04-10T00:00:00Z",
+      "published": "2026-04-01T00:00:00Z",
+      "database_specific": { "severity": "MODERATE" },
+      "severity": [
+        { "type": "CVSS_V3", "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N" }
+      ],
+      "affected": [
+        {
+          "package": { "name": "express", "ecosystem": "npm", "purl": "pkg:npm/express" },
+          "ranges": [
+            {
+              "type": "SEMVER",
+              "events": [
+                { "introduced": "4.0.0" },
+                { "fixed": "4.21.1" }
+              ]
+            }
+          ]
+        }
+      ],
+      "references": [
+        { "type": "ADVISORY", "url": "https://example.com/GHSA-test-express-002" }
+      ]
+    },
+    {
+      "id": "GHSA-test-chalk-003",
+      "summary": "ReDoS in chalk format strings (synthetic)",
+      "aliases": ["CVE-2026-99003"],
+      "modified": "2026-05-01T00:00:00Z",
+      "published": "2026-04-20T00:00:00Z",
+      "database_specific": { "severity": "LOW" },
+      "severity": [
+        { "type": "CVSS_V3", "score": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L" }
+      ],
+      "affected": [
+        {
+          "package": { "name": "chalk", "ecosystem": "npm", "purl": "pkg:npm/chalk" },
+          "ranges": [
+            {
+              "type": "SEMVER",
+              "events": [
+                { "introduced": "5.0.0" },
+                { "fixed": "5.3.1" }
+              ]
+            }
+          ]
+        }
+      ],
+      "references": [
+        { "type": "ADVISORY", "url": "https://example.com/GHSA-test-chalk-003" }
+      ]
+    }
+  ]
+}
