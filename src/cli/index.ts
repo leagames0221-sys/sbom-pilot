@@ -13,7 +13,9 @@
  * Spec mapping: AC-005-1, AC-005-3, AC-005-5, ADR-0006.
  */
 import { Command } from 'commander';
-import { EX_CONFIG } from '../exit-codes.js';
+import { EX_CONFIG, EX_USAGE } from '../exit-codes.js';
+import { formatDidYouMeanLine } from './did-you-mean.js';
+import { resolveGlobalFlags, wrapStderr, wrapWriter } from './global-flags.js';
 import {
   checkNodeEngine,
   formatVersionLine,
@@ -51,9 +53,12 @@ export interface CliRunOptions {
  * `--help` output without invoking process.exit.
  */
 export function buildProgram(options: CliRunOptions): Command {
-  const stdout = options.stdout ?? ((line: string) => process.stdout.write(`${line}\n`));
-  const stderr = options.stderr ?? ((line: string) => process.stderr.write(`${line}\n`));
+  const rawStdout = options.stdout ?? ((line: string) => process.stdout.write(`${line}\n`));
+  const rawStderr = options.stderr ?? ((line: string) => process.stderr.write(`${line}\n`));
   const exit = options.exit ?? ((code: number) => process.exit(code));
+  const flags = resolveGlobalFlags(options.argv);
+  const stdout = wrapWriter(rawStdout, flags);
+  const stderr = wrapStderr(rawStderr, flags);
 
   const program = new Command();
 
@@ -62,7 +67,13 @@ export function buildProgram(options: CliRunOptions): Command {
     .description(
       'Offline-first SBOM (SPDX 2.3 / CycloneDX 1.5) + vulnerability scan + compliance reports for individual developers and SMBs.',
     )
-    .version(formatVersionLine({ version: readPackageVersion(), gitHash: null }), '-V, --version');
+    .version(formatVersionLine({ version: readPackageVersion(), gitHash: null }), '-V, --version')
+    .option('--no-color', 'Disable ANSI colour codes in stdout / stderr.')
+    .option('-q, --quiet', 'Suppress informational stderr (errors still surface).')
+    // Commander 13.x ships its own "Did you mean" suggestion; turn it
+    // off so the AC-005-2 wording ("did you mean: X") comes from our
+    // own did-you-mean module (capitalised + colon match the spec).
+    .showSuggestionAfterError(false);
 
   program
     .command('sbom')
@@ -123,6 +134,22 @@ export function buildProgram(options: CliRunOptions): Command {
     writeErr: (s: string) => stderr(s.replace(/\n$/, '')),
   });
   program.exitOverride((err) => {
+    // Unknown-command path: commander 13.x sets err.code to
+    // 'commander.unknownCommand' OR 'commander.unknown'; the safer
+    // signal is the message text "unknown command 'X'".
+    const unknownMatch = err.message.match(
+      /unknown command\s+['"]([^'"]+)['"]/,
+    );
+    if (unknownMatch !== null) {
+      const subcommands = program.commands.map((c) => c.name());
+      const typed = unknownMatch[1] ?? '';
+      if (typed.length > 0) {
+        const hint = formatDidYouMeanLine(typed, subcommands, { limit: 1 });
+        if (hint !== null) stderr(hint);
+      }
+      exit(EX_USAGE);
+      throw err;
+    }
     // Map commander's internal exit (help / version / parse error) to
     // the injected exit handler so tests don't kill the process.
     exit(err.exitCode);
