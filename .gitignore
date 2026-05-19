@@ -1,0 +1,71 @@
+# Node.js (TypeScript path)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm/
+.pnpm-store/
+
+# Go (alternative stack path)
+*.exe
+*.test
+*.prof
+vendor/
+
+# Build artifacts
+dist/
+build/
+out/
+bin/
+*.tsbuildinfo
+coverage/
+.nyc_output/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+credentials.json
+secrets.json
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Test / temp
+_scratch/
+_scratch*/
+tmp/
+*.tmp
+*.bak
+
+# SBOM artifacts (generated, not committed)
+*.spdx.json
+*.cdx.json
+*.sbom.json
+sbom-output/
+
+# Local-only internal notes (channel B mask list, never commit)
+.claude/internal_notes.md
+.claude/settings.local.json
+.claude/memory_bank/private_*
+
+# Auto-generated heartbeats and telemetry from local tooling (never commit)
+.claude/.*.heartbeat
+.claude/*.heartbeat
+.claude/.*.jsonl
+.claude/*.jsonl
+.claude/.*.log
+.claude/*.log
+
+# Logs
+*.log
+logs/

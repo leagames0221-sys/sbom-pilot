@@ -1,0 +1,36 @@
+# Pre-commit hooks for sbom-pilot
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: detect-private-key
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # Channel B forbidden token mask (wired at Stage 4 Task T-XX after stack
+  # lock; scans staged diff against gitignored .claude/internal_notes.md
+  # mask list, fails closed if missing). Placeholder Python script lives at
+  # scripts/check_forbidden_tokens.py once stack is locked at Stage 1
+  # Discovery.
+  - repo: local
+    hooks:
+      - id: forbidden-token-mask
+        name: Channel B forbidden token mask
+        entry: python scripts/check_forbidden_tokens.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
