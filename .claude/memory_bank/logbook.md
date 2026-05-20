@@ -257,3 +257,29 @@ Pulled through L2, L3, L4, L5, L6, L7, L8 in one extended session. Reached
   origin synced, 578 specs PASS in 42 files, tsc strict green,
   pnpm audit --audit-level=high clean
 - Remaining ~3-4 hours wall-time at 1 task = 1 commit cadence
+
+---
+
+## 2026-05-20T18:50+09:00 — L9 + Phase α exit COMPLETE (L0..L9 all 40/40 tasks landed, top-rank verdict achieved, PUBLIC flip executed)
+
+L9 was completed end-to-end this session:
+
+- T-33 ci.yml 3-OS matrix + drift-check (`2a704a7`, `7399fbb` branches-extra fix)
+- T-34 scorecard / codeql / dependabot (`f6c77c1`, `40d6b38` skip-on-private guard)
+- T-35 dependency-cruiser + ADR-0006 forbidden-edge lint + neg test (`f47435c`, `63b198f` Windows path fix, `24972f8` testTimeout)
+- T-36 NOTICE (Apache-2.0 attribution for Anchore prior-art + vendored schemas) (`dc868fa`)
+- T-37 README final (10 sections) + CHANGELOG (Keep-a-Changelog) (`4d6dee7`)
+- T-38 benchmark.ts + perf.test.ts (1k-component, wall-clock < 30 s) (`b94f569`)
+- T-39 cosign.ts + --use-syft/--use-grype opt-in gate (`38ee60f`)
+- T-40 Phase α verify round (`6bcb88a` writer draft, `dad2259` round 1 reviewer CONFIRM, `23e6c1b` 10-item polish + 1 latent cosign-spawn bug fix, `1fe7534` round 2 reviewer CONFIRM, `f7d8296` user-requested round 3 audit cleanup × 3 doc fixes)
+
+Final state at commit `f7d8296`:
+- 607 vitest specs PASS in 47 test files
+- line / func / stmt coverage all ≥ 96%, branches 86.56% (above 85 threshold)
+- tsc strict green, pnpm audit clean, depcruise 0 errors / 2 informational warnings
+- 3-OS CI conclusion=success on every L9 commit
+- 7 ADRs Accepted (0001-0007)
+
+User explicit promotion gate granted 2026-05-20 after the 3rd-round audit cleanup. Repository flipped PRIVATE → PUBLIC same day. Portfolio surface (HTML + email template) updated externally.
+
+Next session: Phase β planning if desired (library API surface populate, subprocess wrap parse-back, vuln-db refresh script, npm publish path). Phase α has no outstanding work.

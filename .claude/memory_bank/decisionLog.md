@@ -42,3 +42,29 @@
 ## Reversal log
 
 (empty — no decisions reversed yet)
+
+---
+
+## D-021 2026-05-20 — Severity vocabulary relocated to IR leaf module (T-35 finding)
+
+**Decision**: Move `OsvSeverityLabel` type + `SEVERITY_RANK` + `SEVERITY_DESC` + `compareSeverity` from `src/scanners/{vuln-db,severity}.ts` to a new leaf module `src/ir/severity.ts`.
+
+**Context**: dependency-cruiser configured at T-35 caught a single ADR-0006 forbidden-edge violation: `src/emitters/compliance/appi-26-2.ts` was importing `rankBySeverity` as a VALUE from `src/scanners/severity.ts`, which crosses the forbidden Emitters→Scanners edge.
+
+**Alternatives considered**:
+- A. Pre-rank in the caller (CLI report subcommand) and remove appi-26-2's defensive internal rank call. Rejected: breaks the emitter's defensive contract (un-ranked input would produce wrong priority section ordering, breaking existing tests).
+- B. Inline a 4-line sort in appi-26-2.ts using hard-coded ordering. Rejected: duplicate constants, prone to drift if severity vocab expands.
+- C. depcruise per-rule exception annotation. Rejected: defeats the lint's purpose.
+- **D. Move severity ordering primitives to a leaf module on the IR layer (selected)**. The vocab is pure data and the comparator is a pure function — both fit naturally on the IR layer, where any consumer (parsers, emitters, scanners, CLI) can reach them without crossing a forbidden edge. `rankBySeverity` (which operates on `Finding`, a scanners-domain type) stays in scanners.
+
+**Outcome**: Edit landed in commit `f47435c`. Re-exports added from `src/scanners/vuln-db.ts` and `src/scanners/severity.ts` so the existing public surface of all callers stays valid (no breaking change). appi-26-2.ts now does `[...findings].sort((a, b) => compareSeverity(a.severity, b.severity))` using the IR-layer comparator, satisfying the no-emitters-to-scanners forbidden-edge rule. 16 existing tests for the appi emitter continue to pass; depcruise lint clean.
+
+## D-022 2026-05-20 — cosign default-spawn wrapper re-throws spawnSync.error (T-40 polish finding)
+
+**Decision**: `defaultCosignSpawn` (the production cosign invoker in `src/subprocess/cosign.ts`) inspects `result.error` after `spawnSync` and re-throws it.
+
+**Context**: Round 1 reviewer CONFIRM held, but the writer self-audit caught a latent bug. The original wrapper returned `{status, stdout, stderr}` without inspecting `.error`. `child_process.spawnSync` does NOT throw on spawn failure (e.g., cosign not on PATH); it sets `result.error.code = 'ENOENT'` and leaves `status = null`. The outer `verifyAnchoreBinary` try/catch was written expecting the wrapper to throw, so a missing-cosign environment in production would have been mis-classified as a `signature-mismatch` instead of routing to the `cosign-missing` branch. The test suite did not catch this because all tests inject a stub `spawn` that throws (matching the outer try/catch contract).
+
+**Fix**: `defaultCosignSpawn` now checks `if (result.error !== undefined && result.error !== null) throw result.error;`. An integration test (`__defaultCosignSpawnForTests` escape hatch) calls the real production wrapper against an intentionally-non-existent binary so the real `spawnSync` path is exercised in CI, not just the stub.
+
+**Outcome**: Landed in commit `23e6c1b`. Production behaviour now matches the documented contract (`reason: 'cosign-missing'` returns when cosign is not on PATH); 7 cosign tests pass; cross-PJ universal lesson recorded (cross-process error contract in Node's spawnSync requires explicit `.error` inspection).
