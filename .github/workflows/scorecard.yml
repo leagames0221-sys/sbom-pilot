@@ -36,12 +36,32 @@ jobs:
       actions: read
 
     steps:
+      - name: Check repo visibility
+        # Scorecard requires PUBLIC repository (or GHAS on private) to:
+        # 1. Query the GraphQL ListCommits API (githubv4)
+        # 2. Publish results to scorecard.dev
+        # 3. Upload SARIF to the Code Scanning dashboard
+        # When the repo is still PRIVATE (pre-Phase α exit), short-circuit
+        # the job with a logged skip so the Actions tab stays green and
+        # the workflow auto-activates on PUBLIC flip with no edits needed.
+        id: visibility
+        run: |
+          if [ "${{ github.event.repository.private }}" = "true" ]; then
+            echo "Repository is private; Scorecard requires PUBLIC visibility (or GHAS)."
+            echo "Workflow is configured and ready; SARIF will publish on PUBLIC flip with no further changes."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout code
+        if: steps.visibility.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Run analysis
+        if: steps.visibility.outputs.skip != 'true'
         uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46 # v2.4.0
         with:
           results_file: results.sarif
@@ -55,6 +75,7 @@ jobs:
 
       # Upload to GitHub Security tab (Code Scanning).
       - name: Upload SARIF to GitHub Security tab
+        if: steps.visibility.outputs.skip != 'true'
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
