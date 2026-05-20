@@ -86,9 +86,15 @@ These edges will be enforced by a dependency-direction lint at Stage 4 (e.g. [`d
 
 ### Public API surface (Phase α)
 
-- **External (npm consumers)**: `import { generate, scan, report } from 'sbom-pilot'`
-- **CLI**: `bin/sbom-pilot.ts` only
-- **Everything else**: internal, no semver guarantees
+- **CLI**: `bin/sbom-pilot.ts` only — the literal Phase α consumer surface
+- **External (npm consumers, library imports)**: **deferred to Phase β**.
+  `src/index.ts` is a scaffolding placeholder at Phase α; library-style
+  `import { generate, scan, report } from 'sbom-pilot'` is not exposed
+  until Phase β wires the wrapper exports around the existing
+  subcommand actions. This is intentional — Phase α scope is the
+  defensive-first CLI; the library surface is a separate adoption
+  pathway with its own semver / breaking-change discipline.
+- **Everything else**: internal, no semver guarantees.
 
 ## Rationale
 

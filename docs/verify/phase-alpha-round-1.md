@@ -118,13 +118,13 @@ Commit cadence detail (last 10): `feat(T-39) → feat(T-38) → feat(T-37) → f
 ## Phase α exit checklist (literal from ADR-0007 §"Phase α exit checklist")
 
 - [x] All 38 AC from spec.md §10 have an implemented + tested counterpart — coverage matrix in `tasks.md` §"AC ↔ Task matrix"
-- [x] vitest spec count ≥ 500, line-coverage ≥ 90% — **603 specs / 96.74% lines**
-- [x] 3-OS CI matrix conclusion=success on the verify commit — run `26150778369` on `38ee60f`
+- [x] vitest spec count ≥ 500, line-coverage ≥ 90% — **607 specs / 97.58% lines (post commercial-grade polish)**
+- [x] 3-OS CI matrix conclusion=success on the verify commit — round 1 run `26150778369` on `38ee60f`; round 2 polish run `26153277553` on `23e6c1b`
 - [x] pnpm audit --audit-level=high = clean — output: `No known vulnerabilities found`
 - [x] gitleaks scan = clean — pre-commit `scripts/check_forbidden_tokens.py` gate clean; channel-B mask test (`tests/unit/mask-script.test.ts`) PASS
-- [x] No internal-infrastructure-name leaks — drift-check job verifies `.claude/internal_notes.md` not committed; `grep -r 'HIVE\|secretary\|ARA' src/ tests/ docs/` returns no internal-infra terms (per channel-B mask discipline)
-- [ ] Writer/Reviewer verify round CONFIRM 7/7 PASS — **pending reviewer subagent invocation**
-- [ ] User explicit OK for top-rank promotion — **pending user gate (after reviewer CONFIRM)**
+- [x] No internal-infrastructure-name leaks — drift-check job verifies `.claude/internal_notes.md` not committed; channel-B mask scan literal clean across src/ tests/ docs/ README NOTICE LICENSE SECURITY.md
+- [x] Writer/Reviewer verify round CONFIRM 7/7 PASS — round 1 on `38ee60f` 2026-05-20T17:43+09:00 + round 2 on `23e6c1b` 2026-05-20T18:30+09:00, both CONFIRM 7/7 with drift flags ZERO
+- [ ] User explicit OK for top-rank promotion — **pending user gate (final layer per rubric §user-gate)**
 - [x] README + LICENSE + SECURITY + NOTICE finalized — all 4 files at repo root, all referenced from README §10
 - [ ] portfolio HTML + intro email template updated to include sbom-pilot row — **deferred to post-promotion work item**
 
