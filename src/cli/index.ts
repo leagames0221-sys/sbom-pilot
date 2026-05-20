@@ -81,6 +81,17 @@ export function buildProgram(options: CliRunOptions): Command {
     .argument('<project-dir>', 'Path to the project directory (npm / pnpm / pip / go).')
     .option('-f, --format <format>', 'Output format: spdx | cyclonedx', 'spdx')
     .option('-o, --output <path>', 'Write to <path> atomically instead of stdout.')
+    // T-39 opt-in subprocess paths (AC-NF-cosign-gate). Cosign verifies
+    // the local Anchore binary before any spawn; verification failure
+    // refuses with EX_NOPERM.
+    .option('--use-syft', 'Opt into the syft subprocess path (requires cosign-verifiable binary triple).')
+    .option('--syft-binary <path>', 'Path to the local syft binary (with --use-syft).')
+    .option('--syft-signature <path>', 'Path to the syft .sig file (with --use-syft).')
+    .option('--syft-certificate <path>', 'Path to the syft .pem certificate (with --use-syft).')
+    .option('--use-grype', 'Opt into the grype subprocess path (requires cosign-verifiable binary triple).')
+    .option('--grype-binary <path>', 'Path to the local grype binary (with --use-grype).')
+    .option('--grype-signature <path>', 'Path to the grype .sig file (with --use-grype).')
+    .option('--grype-certificate <path>', 'Path to the grype .pem certificate (with --use-grype).')
     .action(async (projectDir: string, cmdOptions: SbomCommandOptions) => {
       await sbomAction(projectDir, cmdOptions, { stdout, stderr, exit });
     });
