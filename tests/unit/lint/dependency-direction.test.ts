@@ -84,12 +84,22 @@ describe('dependency-direction lint (ADR-0006 negative test)', () => {
 
       // Invoke depcruise via `node <entry.mjs>` directly so this runs
       // cross-platform without relying on the .cmd shim that trips up
-      // child_process on Windows. depcruise exits with non-zero when
-      // error-severity violations are present.
+      // child_process on Windows. We chdir spawn's cwd to the tmp
+      // fixture dir + pass relative paths for the config + targets, so
+      // depcruise's path resolver never sees backslash-laden Windows
+      // absolute paths (which surface as ENOENT in argv parsing).
+      // depcruise exits with non-zero when error-severity violations
+      // are present.
       const proc = spawnSync(
         process.execPath,
-        [depcruiseEntry, '--config', cfgPath, parserDir, emitterDir],
-        { encoding: 'utf8' },
+        [
+          depcruiseEntry,
+          '--config',
+          '.dependency-cruiser.cjs',
+          'parsers',
+          'emitters',
+        ],
+        { encoding: 'utf8', cwd: dir },
       );
       const exitCode = proc.status ?? 1;
       const output = (proc.stdout ?? '') + (proc.stderr ?? '');
