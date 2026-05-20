@@ -1,0 +1,58 @@
+# Dependabot — weekly automated dependency PRs.
+#
+# Wires AC-NF-pinned-deps (the lockfile + audit-gate combination only
+# stays current when something proactively refreshes it) and ADR-0007
+# criterion 7 (supply-chain hygiene).
+#
+# Two ecosystems active at this scope: the npm package.json + pnpm-lock
+# manifest and the GitHub Actions workflows under .github/workflows/.
+# Other ecosystems (pip / go / docker) are out of scope for sbom-pilot
+# itself — when this tool *parses* such manifests it does so as input,
+# not as project dependencies.
+
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+      - npm
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+      schema-stack:
+        patterns:
+          - "ajv"
+          - "ajv-formats"
+          - "zod"
+      dev:
+        dependency-type: "development"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Tokyo
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "chore(actions)"

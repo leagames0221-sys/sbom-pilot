@@ -1,0 +1,60 @@
+# OpenSSF Scorecard — repo hygiene + supply-chain posture baseline.
+#
+# Wires ADR-0007 criterion 7 (security + honest framing + AI-era
+# awareness) and Phase α exit checklist item "supply-chain hygiene".
+# Results publish to:
+#   - GitHub Security tab (Code Scanning alerts)
+#   - https://scorecard.dev (public scorecard page reviewers can cite)
+#
+# Schedule: weekly + on push to main. PR-time check intentionally NOT
+# enabled: Scorecard checks (Maintained / Vulnerabilities / Dependency-
+# Update-Tool) fluctuate on time-window state, not PR diff. Weekly is
+# the Scorecard project's own recommended posture.
+
+name: OpenSSF Scorecard
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: "30 5 * * 1" # Weekly, Monday 05:30 UTC
+  push:
+    branches: [main]
+
+# Declare default permissions as read.
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed to upload the SARIF result to code-scanning dashboard.
+      security-events: write
+      # Needed to publish results and get a public scorecard.dev badge.
+      id-token: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46 # v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Required for the Branch-Protection check via GitHub token.
+          # Without this, Branch-Protection is skipped.
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          # Publish to the OpenSSF Scorecard public registry so the
+          # project gets a public scorecard.dev page.
+          publish_results: true
+
+      # Upload to GitHub Security tab (Code Scanning).
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: results.sarif
