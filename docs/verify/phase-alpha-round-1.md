@@ -175,6 +175,59 @@ Per ADR-0007 §"User gate" + rubric §user-gate (closure-bias detection 順守):
 
 ---
 
+---
+
+## Round 2 reviewer verdict (post commercial-grade polish, fresh context)
+
+**Timestamp**: 2026-05-20T18:30+09:00
+**Verify commit**: `23e6c1b` (one commit past round-1's `38ee60f`)
+**Polish commit body**: 10 honest-review findings + 1 latent bug fix in `src/subprocess/cosign.ts`
+**Final verdict**: **CONFIRM** (7/7 PASS, ZERO regressions)
+**Match with writer's re-claim (★★★)**: CONFIRM
+**Round-1 verdict**: CONFIRM on `38ee60f` — two independent CONFIRMs now on the record.
+
+### Per-criterion (round 2, reviewer's independent re-run)
+
+All 7 criteria PASS with fresh-shell evidence:
+- C1: `pnpm vitest run` → 47 files / **607 tests** PASS; `pnpm tsc --noEmit` exit 0; `pnpm audit` clean; CI on `23e6c1b` = success (runs 26153277553 ci / 26153277587 CodeQL / 26153277564 Scorecard); `pnpm run lint:deps` = 0 errors / 2 informational warnings
+- C2: 10 README sections; ASCII diagram at L100-128; Quick start L41-83 literal corrected (no misleading global-install promo)
+- C3: 3,776 LOC across 11 source dirs all original; 7 ADRs; cosign.ts self-implemented (not a tutorial pattern)
+- C4: 54 commits 2026-05-19 ~ 2026-05-20; HEAD authored today
+- C5: 7 ADRs + 6-rule dependency-cruiser + cosign.ts Phase α scope rationale (L1-27)
+- C6: 4 jurisdiction-specific compliance emitters; Anchore GitHub Actions URL pattern cited in cosign.ts L76-83; CVE-2025-65965 lesson cited in README + NOTICE
+- C7: paid-API 6-layer + Scorecard + CodeQL + Dependabot + cosign gate; `--use-syft`/`--use-grype` --help now carries `[Phase α: cosign gate only — subprocess wrap is Phase β]`; cosign.ts L98-112 re-throw fix verified; honest Phase α PoC framing at README L295-304
+
+### Polish delta regression check (10 items + 1 bug, ALL PASS)
+
+| # | Polish item | Reviewer verification |
+|---|---|---|
+| 1 | README Quick start rewrite | PASS — L41-83 literal from-checkout path; future npm block PUBLIC-flip-gated |
+| 2 | README footer simplified | PASS — L308-312 plain "companion to mcp-guard", no rubric labels |
+| 3 | CLI --help Phase α scope | PASS — `src/cli/index.ts:91,95` Phase α prefix present |
+| 4 | cosign.ts BUG fix + integration test | PASS — L98-112 re-throws `result.error`; tests/unit/subprocess/cosign.test.ts:88+ "production spawn path integration" exercises real spawnSync |
+| 5 | branches-extra-2.test.ts 3 tests | PASS — file exists, 3 tests PASS, hot-spot branches reduced |
+| 6 | benchmark 30s→5s regression budget | PASS — scripts/benchmark.ts:51-52 + tests/e2e/perf.test.ts:33+40 dual-budget |
+| 7 | vitest.config.ts testTimeout calibration | PASS — measured-rationale literal in comment |
+| 8 | dependency-cruiser no-orphans re-added | PASS — `.dependency-cruiser.cjs:82-100` severity=warn + 8 path-anchored exclusions; lint output = 0 errors / 2 informational warnings |
+| 9 | README §10 Phase α PoC honest framing | PASS — L295-304 "focused implementation sprint" + Stage 1-4 spec-driven workflow reference |
+| Bug | cosign default-spawn ENOENT routing | PASS — production path now correctly returns `reason='cosign-missing'` (was mis-classifying as signature-mismatch) |
+
+**Regression verdict**: ZERO regressions introduced by polish. specs 603 → 607 net new. branches 86.49% → 86.56%. tsc / audit / lint:deps / 3-OS CI all green on `23e6c1b`.
+
+### Drift flags (round 2)
+
+All NEGATIVE (same as round 1):
+- ✗ No pattern-label assertions
+- ✗ No criteria invention
+- ✗ No marginal-PASS framing
+- ✗ No MEMORY-marker reliance (reviewer re-ran pnpm + tsc + audit + lint:deps + gh in fresh shell, did NOT trust writer's round-1 verify doc evidence)
+
+### Reviewer's recommended action (round 2, unchanged from round 1)
+
+> **User gate per rubric §user-gate (L174-180) remains the final layer**: even with two independent CONFIRM verdicts (round 1 on `38ee60f` + round 2 on `23e6c1b`), AI 自己昇格は禁止. The user is the one who promotes ★★ → ★★★. The reviewer's role is to surface evidence; the user's role is to grant the gate.
+
+---
+
 ## Reviewer invocation log (for audit trail)
 
 ```
