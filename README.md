@@ -79,8 +79,11 @@ sbom-pilot suggest GHSA-1234-5678-90ab
 ```
 
 No flags require an API key. No subcommand writes credentials.
-`scan` runs with zero network egress by default — refresh the
-vuln-db cache explicitly via `--refresh`.
+`scan` runs with zero network egress by default. The `--refresh`
+flag is reserved for a forthcoming vuln-db refresh script (T-29/T-30);
+in the current Phase α build it is a no-op that emits a stderr advisory
+and proceeds with the existing cache. Populate / update the cache
+manually until the refresh wiring lands.
 
 ## 3. Subcommands
 
