@@ -1,0 +1,116 @@
+name: ci
+
+# T-33 (L9 Verify): three checks across a 3-OS matrix (Linux/macOS/Windows)
+# + drift-check job. Wires AC-NF-cross-os, AC-NF-pinned-deps, AC-NF-audit-gate.
+#
+# Coverage thresholds (lines/functions/statements >= 90, branches >= 85)
+# are enforced in vitest.config.ts; the test:coverage step fails when any
+# threshold drops below target — this workflow does not duplicate the gate.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: typecheck + test + audit (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # Node 20 LTS — matches engines.node in package.json and the
+          # runtime gate (MIN_NODE_MAJOR=20) in src/cli/index.ts.
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          # Version is sourced from package.json "packageManager" field
+          # (pnpm@10). Passing an explicit version here triggers the
+          # multi-source-conflict error in pnpm/action-setup@v4.
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test + coverage
+        run: pnpm run test:coverage
+
+      - name: Audit (high severity threshold)
+        # pnpm audit exits non-zero on any vuln at-or-above --audit-level.
+        # Documented residuals (if any) tracked in CHANGELOG.
+        run: pnpm run audit
+
+      - name: Upload coverage report
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  drift-check:
+    name: drift-check (required files + license + channel B mask + ADR)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify required files exist
+        run: |
+          set -e
+          for f in README.md LICENSE CLAUDE.md spec.md tasks.md .gitignore; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              exit 1
+            fi
+          done
+          echo "All required files present."
+
+      - name: Verify LICENSE is MIT
+        run: |
+          grep -q "MIT License" LICENSE || { echo "LICENSE is not MIT"; exit 1; }
+
+      - name: Verify internal_notes.md is NOT committed (channel B mask)
+        run: |
+          if git ls-files --error-unmatch .claude/internal_notes.md 2>/dev/null; then
+            echo "VIOLATION: .claude/internal_notes.md was committed (must be gitignored)"
+            exit 1
+          fi
+          echo "internal_notes.md correctly excluded."
+
+      - name: Verify ADR directory exists
+        run: |
+          test -d docs/adr || { echo "MISSING: docs/adr/"; exit 1; }
+          adr_count=$(find docs/adr -name '*.md' -not -name 'README.md' | wc -l)
+          echo "ADR count: $adr_count"
+          if [ "$adr_count" -lt 6 ]; then
+            echo "FAIL: ADR count below floor (6); ADR-0007 criterion 5 floor."
+            exit 1
+          fi
