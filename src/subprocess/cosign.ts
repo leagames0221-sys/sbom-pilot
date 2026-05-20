@@ -86,6 +86,14 @@ const COSIGN_CERT_OIDC_ISSUER = 'https://token.actions.githubusercontent.com';
  * Default cosign invoker — spawns `cosign verify-blob` synchronously.
  * Exposed (rather than inlined) so the test harness can swap in a stub
  * without monkey-patching child_process at the module level.
+ *
+ * spawnSync does NOT throw on spawn failure (e.g. cosign not on PATH).
+ * Instead it returns an object whose `.error` is set to an Error with
+ * `.code === 'ENOENT'`. The verifyAnchoreBinary outer try/catch expects
+ * a throw to route the ENOENT branch — so this wrapper RE-THROWS
+ * spawnSync's `.error` to preserve that contract. Without the re-throw,
+ * a missing cosign falls into the "exit code !== 0" path and is
+ * mis-classified as a signature-mismatch (review finding 2026-05-20).
  */
 function defaultCosignSpawn(
   cmd: string,
@@ -93,12 +101,24 @@ function defaultCosignSpawn(
   opts: SpawnSyncOptions,
 ): { status: number | null; stdout: string; stderr: string } {
   const result = spawnSync(cmd, [...args], { ...opts, encoding: 'utf8' });
+  if (result.error !== undefined && result.error !== null) {
+    throw result.error;
+  }
   return {
     status: result.status,
     stdout: typeof result.stdout === 'string' ? result.stdout : '',
     stderr: typeof result.stderr === 'string' ? result.stderr : '',
   };
 }
+
+/**
+ * Exposed for integration testing: invokes `defaultCosignSpawn` against
+ * an intentionally-non-existent binary so the real `child_process.spawnSync`
+ * path is exercised, not just the test-injected stub. Used by the cosign
+ * integration test to assert ENOENT bubbles up correctly (and thus the
+ * cosign-missing branch in verifyAnchoreBinary fires in production).
+ */
+export const __defaultCosignSpawnForTests = defaultCosignSpawn;
 
 /**
  * Verify an Anchore binary's cosign signature against the published

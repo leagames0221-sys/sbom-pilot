@@ -8,11 +8,18 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', 'coverage'],
     reporters: ['default'],
     passWithNoTests: true,
-    // Default 5000ms test timeout is too tight for tests that spawn
-    // subprocesses on Windows runners — `mask-script.test.ts` spawns
-    // python (~6.5-7s cold start) and `dependency-direction.test.ts`
-    // spawns the dependency-cruiser CLI (~3s cold). Bump globally to
-    // 15s so the 3-OS CI matrix is not flake-prone on cold starts.
+    // testTimeout calibration — measure-driven, NOT a comfortable
+    // round number.
+    //   - mask-script.test.ts spawns python; measured Windows-CI cold
+    //     start = 6878ms (run 26147961489).
+    //   - dependency-direction.test.ts spawns the dependency-cruiser
+    //     CLI; measured Windows-CI cold start = 2910ms (same run).
+    //   - perf.test.ts asserts the 30s perf budget per AC-001-1 /
+    //     AC-002-1, with its own 60_000ms per-test override.
+    //   The slowest non-override case is ~6.9s; 15s gives a ~2.2× margin
+    //   above the measured tail, which absorbs a single GC pause / IO
+    //   stall without going into noise territory. A tighter 10s would
+    //   start clipping into the measured tail on lightly-loaded runners.
     testTimeout: 15000,
     coverage: {
       provider: 'v8',

@@ -81,14 +81,18 @@ export function buildProgram(options: CliRunOptions): Command {
     .argument('<project-dir>', 'Path to the project directory (npm / pnpm / pip / go).')
     .option('-f, --format <format>', 'Output format: spdx | cyclonedx', 'spdx')
     .option('-o, --output <path>', 'Write to <path> atomically instead of stdout.')
-    // T-39 opt-in subprocess paths (AC-NF-cosign-gate). Cosign verifies
-    // the local Anchore binary before any spawn; verification failure
-    // refuses with EX_NOPERM.
-    .option('--use-syft', 'Opt into the syft subprocess path (requires cosign-verifiable binary triple).')
+    // T-39 opt-in subprocess paths (AC-NF-cosign-gate). At Phase α scope
+    // this flag is the COSIGN VERIFICATION GATE ONLY — cosign verifies
+    // the local Anchore binary, but the actual subprocess wrap (parsing
+    // syft/grype stdout into the IR) is Phase β scope. Pass the flag to
+    // exercise the verification gate; the emitter still uses the
+    // TypeScript-native path for the SBOM output. Verification failure
+    // refuses with EX_NOPERM and never spawns a subprocess.
+    .option('--use-syft', '[Phase α: cosign gate only — subprocess wrap is Phase β] Verify a local syft binary via cosign before any subprocess would be spawned.')
     .option('--syft-binary <path>', 'Path to the local syft binary (with --use-syft).')
     .option('--syft-signature <path>', 'Path to the syft .sig file (with --use-syft).')
     .option('--syft-certificate <path>', 'Path to the syft .pem certificate (with --use-syft).')
-    .option('--use-grype', 'Opt into the grype subprocess path (requires cosign-verifiable binary triple).')
+    .option('--use-grype', '[Phase α: cosign gate only — subprocess wrap is Phase β] Verify a local grype binary via cosign before any subprocess would be spawned.')
     .option('--grype-binary <path>', 'Path to the local grype binary (with --use-grype).')
     .option('--grype-signature <path>', 'Path to the grype .sig file (with --use-grype).')
     .option('--grype-certificate <path>', 'Path to the grype .pem certificate (with --use-grype).')

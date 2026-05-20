@@ -40,8 +40,22 @@ import type {
 } from '../src/scanners/vuln-db.js';
 
 const N = Number(process.env['BENCH_N'] ?? '1000');
-const SBOM_BUDGET_MS = 30_000;
-const SCAN_BUDGET_MS = 30_000;
+// Tight regression budget — distinct from the spec.md absolute budget.
+//
+//   - spec.md AC-001-1 / AC-002-1 absolute budget: 30_000 ms.
+//   - This script's regression budget: 5_000 ms.
+//
+// Locally measured wall-clock on a consumer Windows laptop = ~40 ms
+// (sbom) / ~13 ms (scan). The 5_000 ms regression budget keeps a
+// 125× margin above measurement noise, but catches an order-of-
+// magnitude (~10×) regression long before it crosses the spec
+// budget — silent perf bugs surface in CI rather than only when a
+// fixture grows by 100×.
+const SBOM_BUDGET_MS = 5_000;
+const SCAN_BUDGET_MS = 5_000;
+// Spec budget — exposed in the report alongside the regression budget
+// so a reader sees both numbers.
+const SPEC_BUDGET_MS = 30_000;
 // Synthetic vuln-db advisory count. Chosen so the correlator does real
 // work on 1k × 50 = 50k component-advisory pairs without making the
 // benchmark itself dominated by the DB rather than the implementation.
@@ -253,6 +267,8 @@ async function main(): Promise<number> {
       `Component count: ${N}`,
       `Advisory count: ${ADVISORY_COUNT} (~${Math.round(VULN_MATCH_RATIO * 100)}% targeting real components)`,
       `Fixture generation: ${Math.round(genMs)} ms`,
+      `Regression budget: ${SBOM_BUDGET_MS} ms per path (~125× over typical measurement; catches 10×-class regressions)`,
+      `Spec budget (AC-001-1 / AC-002-1): ${SPEC_BUDGET_MS} ms per path`,
       '',
     ].join('\n');
 

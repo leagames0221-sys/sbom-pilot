@@ -30,7 +30,14 @@ import {
 import { generateVulnDb } from '../../scripts/benchmark.js';
 
 const N = 1000;
-const BUDGET_MS = 30_000;
+// Spec budget per AC-001-1 / AC-002-1.
+const SPEC_BUDGET_MS = 30_000;
+// Tight regression budget — catches a 10×-class slowdown long before
+// the spec budget. Locally measured ~40 ms (sbom) / ~13 ms (scan) on
+// a consumer Windows laptop; 5 s gives a 125× margin above
+// measurement noise but is decisively below the 30 s spec budget so
+// silent perf bugs surface in CI.
+const REGRESSION_BUDGET_MS = 5_000;
 
 function syntheticPackageName(i: number): string {
   const base = `bench-pkg-${i.toString().padStart(5, '0')}`;
@@ -69,7 +76,7 @@ async function generateProject(dir: string, n: number): Promise<void> {
 
 describe('wall-clock perf (T-38, AC-001-1 + AC-002-1)', () => {
   it(
-    `sbom path completes < ${BUDGET_MS} ms on a ${N}-component fixture`,
+    `sbom path completes < ${REGRESSION_BUDGET_MS} ms (spec budget ${SPEC_BUDGET_MS} ms) on a ${N}-component fixture`,
     async () => {
       const dir = await mkdtemp(join(tmpdir(), 'sbom-pilot-perf-sbom-'));
       try {
@@ -88,7 +95,11 @@ describe('wall-clock perf (T-38, AC-001-1 + AC-002-1)', () => {
         expect(ir.components.length).toBeGreaterThanOrEqual(N);
         expect(spdx.length).toBeGreaterThan(0);
         expect(cdx.length).toBeGreaterThan(0);
-        expect(elapsed).toBeLessThan(BUDGET_MS);
+        expect(elapsed).toBeLessThan(SPEC_BUDGET_MS);
+        expect(
+          elapsed,
+          `wall-clock ${elapsed.toFixed(0)} ms exceeded the ${REGRESSION_BUDGET_MS} ms regression budget (spec budget ${SPEC_BUDGET_MS} ms still respected — investigate before raising the floor).`,
+        ).toBeLessThan(REGRESSION_BUDGET_MS);
       } finally {
         await rm(dir, { recursive: true, force: true });
       }
@@ -97,7 +108,7 @@ describe('wall-clock perf (T-38, AC-001-1 + AC-002-1)', () => {
   );
 
   it(
-    `scan path completes < ${BUDGET_MS} ms on a ${N}-component fixture`,
+    `scan path completes < ${REGRESSION_BUDGET_MS} ms (spec budget ${SPEC_BUDGET_MS} ms) on a ${N}-component fixture`,
     async () => {
       const dir = await mkdtemp(join(tmpdir(), 'sbom-pilot-perf-scan-'));
       try {
@@ -115,7 +126,11 @@ describe('wall-clock perf (T-38, AC-001-1 + AC-002-1)', () => {
         // Findings on a synthetic ~5%-real-target advisory set: small
         // but non-zero on the matched bench packages.
         expect(ranked.length).toBeGreaterThanOrEqual(0);
-        expect(elapsed).toBeLessThan(BUDGET_MS);
+        expect(elapsed).toBeLessThan(SPEC_BUDGET_MS);
+        expect(
+          elapsed,
+          `wall-clock ${elapsed.toFixed(0)} ms exceeded the ${REGRESSION_BUDGET_MS} ms regression budget (spec budget ${SPEC_BUDGET_MS} ms still respected — investigate before raising the floor).`,
+        ).toBeLessThan(REGRESSION_BUDGET_MS);
       } finally {
         await rm(dir, { recursive: true, force: true });
       }

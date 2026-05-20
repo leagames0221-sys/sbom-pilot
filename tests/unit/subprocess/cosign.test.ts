@@ -18,7 +18,10 @@
  * parser was never reached.
  */
 import { describe, expect, it, vi } from 'vitest';
-import { verifyAnchoreBinary } from '../../../src/subprocess/cosign.js';
+import {
+  verifyAnchoreBinary,
+  __defaultCosignSpawnForTests,
+} from '../../../src/subprocess/cosign.js';
 import { sbomAction } from '../../../src/cli/subcommands/sbom.js';
 import { EX_NOPERM } from '../../../src/exit-codes.js';
 
@@ -79,6 +82,27 @@ describe('verifyAnchoreBinary — gate cases', () => {
     expect(res.ok).toBe(false);
     expect(res.reason).toBe('invocation-failure');
     expect(res.message).toContain('cosign invocation failed');
+  });
+});
+
+describe('defaultCosignSpawn — production spawn path integration', () => {
+  // Integration test for the real `child_process.spawnSync` wrapper
+  // (review finding 2026-05-20: the wrapper was dropping spawnSync's
+  // `.error` field, so a missing cosign binary in production would be
+  // mis-classified as a signature-mismatch instead of the cosign-
+  // missing branch). This test exercises the wrapper directly with a
+  // command that is guaranteed not to exist on PATH, asserting that
+  // it re-throws the ENOENT-class error so verifyAnchoreBinary's
+  // outer try/catch can route it correctly.
+  it('re-throws spawnSync\'s ENOENT when the cosign binary is not on PATH', () => {
+    // The wrapper is internal but exported as a test escape hatch.
+    expect(() => {
+      __defaultCosignSpawnForTests(
+        'sbom-pilot-definitely-not-a-real-binary-xyz-23042',
+        ['--help'],
+        {},
+      );
+    }).toThrowError(/ENOENT|spawn .* ENOENT|not.*recognized/i);
   });
 });
 

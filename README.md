@@ -40,14 +40,29 @@ single zero-cost CLI.
 
 ## 2. Quick start
 
+This is a Phase α PoC. The package is **not yet published to the npm
+registry** — Phase α runs from a local clone. The `npm install -g`
+path will activate after the Phase α PUBLIC-flip + first
+`v0.1.0` tag.
+
 ```bash
-# Install (from npm — published after Phase α PUBLIC flip)
-npm install -g sbom-pilot
-# or run directly from a checkout:
-pnpm install
-pnpm build
-./bin/sbom-pilot.ts --help
+# Run from a local checkout (current Phase α path):
+git clone https://github.com/leagames0221-sys/sbom-pilot.git
+cd sbom-pilot
+pnpm install --frozen-lockfile
+pnpm build                          # compiles src/ → dist/
+node dist/cli/index.js --help       # or: pnpm exec tsx bin/sbom-pilot.ts --help
 ```
+
+After Phase α PUBLIC flip + npm publish:
+
+```bash
+# npm install -g sbom-pilot     # ← available once Phase α tags v0.1.0
+# sbom-pilot --help
+```
+
+Subcommand examples (invoke via the resolved binary, abbreviated as
+`sbom-pilot` below):
 
 ```bash
 # Generate an SPDX 2.3 SBOM from a project directory
@@ -277,17 +292,21 @@ test:coverage → lint:deps → audit on every PR + push to main.
   (syft + grype), vendored SPDX / CycloneDX / SARIF JSON schemas, and
   runtime npm dependency licensing snapshots.
 - **Disclosure policy**: see [`SECURITY.md`](SECURITY.md).
-- **Phase α PoC notice**: this is a Phase α portfolio project. For
-  production deployments at scale, evaluate the maintained
-  alternatives (`anchore/syft` + `anchore/grype`, `aquasecurity/trivy`)
-  and contract a vendor or in-house security team for ongoing
-  remediation tracking. `sbom-pilot` produces the deliverables; it
-  does not replace the security operations workflow that consumes
-  them.
+- **Phase α PoC notice**: this is a Phase α portfolio project,
+  developed as a focused implementation sprint over a short window
+  (the L0..L9 layer build sits on top of a Stage 1-4 spec-driven
+  workflow whose deliverables — `spec.md`, `tasks.md`, `docs/adr/`
+  — predate the implementation commits). For production deployments
+  at scale, evaluate the maintained alternatives (`anchore/syft` +
+  `anchore/grype`, `aquasecurity/trivy`) and contract a vendor or
+  in-house security team for ongoing remediation tracking.
+  `sbom-pilot` produces the deliverables; it does not replace the
+  security operations workflow that consumes them.
 
 ---
 
 Built by [tomohiro takada](https://github.com/leagames0221-sys) — AI
-developer / full-stack engineer. Companion security tool to
-[mcp-guard](https://github.com/leagames0221-sys/mcp-guard) (MCP server
-security scanner, ★★★ Strong Hire 2026-05-19).
+developer / full-stack engineer. Companion to
+[mcp-guard](https://github.com/leagames0221-sys/mcp-guard), an MCP
+server security scanner from the same Phase α defensive-tooling
+sprint.
