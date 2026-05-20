@@ -170,8 +170,10 @@ regulatory drift is caught at PR review, not at audit time.
 
 ## 6. Paid-API + supply-chain defense
 
-The project is built around six explicit defensive layers (per ADR-0002
-§"Tradeoffs accepted" + spec.md §10.5 AC-NF-1..6):
+The project is built around four code-level defenses plus two
+architectural constraints (per ADR-0002 §"Tradeoffs accepted" + spec.md
+§10.5 AC-NF-1..6, matching the inline comment in
+[src/providers/llm/paid-defense.ts](src/providers/llm/paid-defense.ts)):
 
 1. **Constructor gate** — a paid LLM provider is only instantiable when
    both `<PROVIDER>_API_KEY` *and* `SBOM_PILOT_LLM_PROVIDER=<provider>`
@@ -232,7 +234,7 @@ without it the subcommand falls back to the mock provider.
 # Install + verify
 pnpm install --frozen-lockfile
 pnpm run typecheck      # tsc --noEmit (strict, exactOptionalPropertyTypes)
-pnpm run test           # 595+ vitest specs
+pnpm run test           # 607 vitest specs (47 test files)
 pnpm run test:coverage  # with v8 coverage thresholds (line/function/statement ≥ 90, branch ≥ 85)
 pnpm run lint:deps      # ADR-0006 5-edge dependency-cruiser lint
 pnpm run audit          # pnpm audit --audit-level=high
