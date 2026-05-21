@@ -11,10 +11,41 @@
 > deliverables an enterprise security team produces — without the
 > enterprise toolchain.
 
+**Plain-language summary** *(for non-specialist readers)*
+
+- **SBOM (Software Bill of Materials)** — a machine-readable list of every
+  library a piece of software pulls in (direct + transitive). Think
+  "ingredients label" for software.
+- **Vulnerability scan** — cross-references that ingredients list against
+  public databases (OSV / NVD / GHSA) of known security defects.
+- **Compliance report** — restates the SBOM + scan output in the exact
+  shape that a specific regulation requires (Japanese APPI 26-2 breach
+  reports, US federal procurement under EO 14028, EU CRA conformity, etc.).
+- **Why it matters** — supply-chain regulations now apply to small teams
+  too, but enterprise SCA platforms are priced for enterprise budgets.
+  `sbom-pilot` produces the same deliverables on a free / local stack.
+
 [![ci](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/ci.yml/badge.svg)](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/scorecard.yml/badge.svg)](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/scorecard.yml)
 [![CodeQL](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/codeql.yml/badge.svg)](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Constraint: zero credit card](https://img.shields.io/badge/Constraint-zero%20credit%20card-blue)](#selected-under)
+[![Constraint: local LLM (default)](https://img.shields.io/badge/Constraint-local%20LLM%20%28default%29-blue)](#selected-under)
+[![Constraint: free / OSS only](https://img.shields.io/badge/Constraint-free%20%2F%20OSS%20only-blue)](#selected-under)
+[![Constraint: security defense-in-depth](https://img.shields.io/badge/Constraint-security%20defense--in--depth-blue)](#selected-under)
+
+---
+
+## Selected under
+
+> **The 4-constraint set** (applied across the full portfolio — verified consistent across all 11 portfolio repos):
+>
+> 1. **Zero credit card** — no paid API / cloud service required for the default path. A reviewer can clone, install, and run with $0 spend and no payment method on file.
+> 2. **Local LLM (default)** — when an LLM is involved, the default path is local (Ollama / similar) or deterministic mock. Paid cloud LLM is opt-in via env var, never default.
+> 3. **Free / OSS only** — every runtime dependency is permissively-licensed open source (MIT / Apache-2.0 / BSD-3); no proprietary SDK at build time.
+> 4. **Security defense-in-depth** — secrets-scan CI + `.gitignore` hardening, encrypted-at-rest where PII is involved, append-only audit logging where applicable, dep-vuln gating (`pip-audit` / `pnpm audit`), paid-API constructor gate where applicable.
+
+This repo specifically demonstrates: defensive-first SBOM CLI with `paid-API 6-layer defense` (constructor gate + pre-flight reserve + key non-leak + CI auto-call ban + default mock + zero-CC-service-only), Ollama-default `suggest` provider with mock fallback, and offline-first vuln scan against an OSV cache snapshot. See [docs/PROVIDERS.md](docs/PROVIDERS.md) for the literal 6-layer defense spec.
 
 ---
 
@@ -255,7 +286,7 @@ Repository layout:
 ├── scripts/             # python pre-commit + vuln-db refresh
 ├── .github/workflows/   # ci + scorecard + codeql
 ├── .claude/             # PJ-internal memory bank (Tier 2, gitignored)
-├── spec.md              # Spec SSoT (Stage 1-4 cleared)
+├── spec.md              # Spec SSoT (Stage 1 Discovery output, dated 2026-05-19; Stage 2-4 work captured in tasks.md + docs/adr/)
 ├── tasks.md             # L0-L9 40-task breakdown
 ├── CHANGELOG.md         # Keep-a-Changelog format
 ├── NOTICE               # Apache-2.0 attributions (Anchore prior-art + schemas)
