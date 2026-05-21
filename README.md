@@ -116,6 +116,39 @@ in the current Phase α build it is a no-op that emits a stderr advisory
 and proceeds with the existing cache. Populate / update the cache
 manually until the refresh wiring lands.
 
+### Demo output
+
+The four subcommands above produce the following terminal output against
+`tests/fixtures/projects/npm-tiny` (synthetic 6-package npm project, no real
+deps). Rendered from raw stdout/stderr by `docs/demo/cli/render.py` (Pillow +
+MS Gothic, no network egress).
+
+| Command | Screenshot |
+|---|---|
+| `sbom-pilot --help` | [help.png](docs/demo/cli/help.png) |
+| `sbom-pilot sbom <dir> --format spdx` | [sbom.png](docs/demo/cli/sbom.png) |
+| `sbom-pilot scan <dir> --vuln-db <seed>` | [scan.png](docs/demo/cli/scan.png) |
+| `sbom-pilot report <dir> --standard appi-26-2` | [report.png](docs/demo/cli/report.png) |
+
+The `scan` output above shows 3 synthetic findings (1 HIGH lodash + 1 MODERATE
+express + 1 LOW underscore) against the npm-tiny fixture seeded by
+`tests/fixtures/vuln-db-seed/vuln-db.json`. The `report` output is in Japanese
+because `appi-26-2` (個人情報保護法 第26条の2) is a JP regulation; English
+reports are available via `--standard ntia` / `eu-cra` / `meti-sbom-v2`.
+
+To regenerate the screenshots locally:
+
+```bash
+# Capture raw outputs (Bash redirect; PowerShell users: pipe through Set-Content -Encoding utf8)
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts --help > docs/demo/cli/help.txt 2>&1
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts sbom tests/fixtures/projects/npm-tiny --format spdx --no-color > docs/demo/cli/sbom.txt 2>&1
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts scan tests/fixtures/projects/npm-tiny --vuln-db tests/fixtures/vuln-db-seed/vuln-db.json --no-color > docs/demo/cli/scan.txt 2>&1
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts report tests/fixtures/projects/npm-tiny --standard appi-26-2 --vuln-db tests/fixtures/vuln-db-seed/vuln-db.json --no-color > docs/demo/cli/report.txt 2>&1
+
+# Render PNGs (system Python >= 3.10 + Pillow)
+python docs/demo/cli/render.py
+```
+
 ## 3. Subcommands
 
 | Subcommand | Purpose | Default output | Exit policy |
