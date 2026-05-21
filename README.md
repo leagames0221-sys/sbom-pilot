@@ -320,6 +320,42 @@ Test pyramid:
 The 3-OS CI matrix (Ubuntu / macOS / Windows) runs typecheck →
 test:coverage → lint:deps → audit on every PR + push to main.
 
+## What this exercise validated
+
+Three things turned out to be worth defending in this Phase α build.
+
+**First, the four-constraint set is operative, not decorative.** Every
+dependency, every CI gate, and every default code path holds against the
+constraints stated at the top of this README — `pnpm audit
+--audit-level=high` is a CI gate, the paid-API constructor refuses to
+instantiate without both env vars
+([src/providers/llm/paid-defense.ts](src/providers/llm/paid-defense.ts) +
+[ADR-0002](docs/adr/0002-stack-typescript.md) §Tradeoffs accepted), the
+`suggest` subcommand falls back to mock when Ollama is absent, and no
+runtime path reads from a credit-card-required service. A reviewer can
+clone this repo, run with `$0` spend, and verify each constraint by
+literal `grep` against the lockfile + workflows.
+
+**Second, the SBOM-to-compliance pipeline is shaped by the regulations,
+not by tooling availability.** The four compliance reports (改正個情法
+26-2 / METI SBOM v2.0 / NTIA Minimum Elements / EU CRA Annex I) each
+have a dedicated emitter under `src/emitters/compliance/` and a
+golden-fixture corpus under `tests/golden/compliance/`. Regulatory drift
+surfaces at PR review (snapshot diff) rather than at audit time. The
+5-layer module boundary ([ADR-0006](docs/adr/0006-module-boundary.md))
+was chosen specifically so that adding a fifth regulation later would
+touch one emitter file, not the parser or scanner layers.
+
+**Third, the Phase α stops where the maintained alternatives start.**
+`anchore/syft` and `anchore/grype` (and `aquasecurity/trivy`) remain the
+right call for production-scale supply-chain operations — this repo's
+Phase α PoC notice in the next section is explicit about that boundary.
+What `sbom-pilot` adds is the four-regulation compliance layer + the
+paid-API defense pattern + the offline-first default — wired and tested
+at 607 vitest specs across the 5-layer architecture, runnable on a
+consumer laptop with zero monthly cost. That delineation is the wedge,
+not a substitute claim.
+
 ## 10. License + attribution
 
 - **License**: [MIT](LICENSE) © 2026 tomohiro takada.
