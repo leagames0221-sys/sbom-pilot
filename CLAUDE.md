@@ -1,26 +1,11 @@
-# sbom-pilot — Tier 2 PJ-local rules
-
-> Tier 1 (~/.claude/) のユニバーサル doctrine / security / orchestrator は auto-import 済。
-> 本 file は **PJ 固有** 規約のみ記述。
+# sbom-pilot — PJ-local rules
 
 ## PJ Identity
 
 - 案件: `sbom-pilot` — Software Bill of Materials (SBOM) generator + vulnerability scanner + JP/US/EU compliance reporter
-- 目的: 個人開発者 / SMB 向け defensive-first CLI tool として portfolio に追加、 supply-chain security 受託案件への entry point (mcp-guard の sibling security tool #2)
-- scope: Phase α (本 repo 単独 ★★★ verify) → Phase β 完了 = 2 つ目 security tool ship 完遂
+- 目的: 個人開発者 / SMB 向け defensive-first CLI tool、 supply-chain security tool (mcp-guard sibling)
+- scope: Phase α (本 repo 単独 verify) → Phase β 完了 = 2 つ目 security tool ship 完遂
 - target audience: dependency tree を持つ全 software project の maintainer + supply-chain 監査義務を負う SMB
-
-## Repo public framing
-
-本 repo は **GitHub PRIVATE で initial commit**、 ★★★ verify 通過後 PUBLIC 化判断。 PUBLIC 化時の framing:
-
-- author identity: `tomohiro takada` (GitHub `leagames0221-sys`)
-- profile framing: 「AI 開発者 / フルスタックエンジニア」
-- "solo" / "individual" / "single dev" framing words avoided
-- Off-repo personal identity details and unrelated project names not disclosed
-- Internal infrastructure terminology not disclosed (commit-time sanitization hook blocks at write)
-
-詳細 mask list: `.claude/internal_notes.md` (gitignored、 commit 不可)。
 
 ## Stack (TBD — Stage 1 Discovery で literal lock 予定)
 
@@ -37,8 +22,6 @@
 
 ## PJ 固有 verify priority
 
-Tier 1 default を継承 + 下記 addition:
-
 1. SBOM schema validation (SPDX 2.3 JSON schema + CycloneDX 1.5 JSON schema、 公式 schema literal 適用)
 2. Vulnerability DB cache fixture (OSV / NVD / GHSA snapshot) で scanner unit test
 3. Compliance reporter golden test (改正個情法 26-2 / METI SBOM minimum fields / NTIA Minimum Elements / EU CRA Annex I)
@@ -49,7 +32,6 @@ Tier 1 default を継承 + 下記 addition:
 
 - 実 dependency tree の credential / API key literal commit 禁止
 - 顧客 dependency tree (受託案件 hint) literal commit 禁止
-- Channel B 順守: 内部 infra 用語 / 内部 module 名 commit 禁止 (pre-commit hook で literal block)
 - **クレカ要求 external service 採用 literal 禁止** (Cloudflare free tier / GitHub Actions free tier 等 クレカ不要 service のみ)
 - **paid LLM API (Anthropic / OpenAI 等) auto-call literal 禁止** (env-var-gated optional、 user 明示時のみ active)
 - **vulnerability DB online fetch を default で実行禁止** (offline-first、 explicit `--refresh` flag のみ network egress)
@@ -57,7 +39,6 @@ Tier 1 default を継承 + 下記 addition:
 
 ## PJ 固有 required
 
-- 全 commit に `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` (cross-PJ universal)
 - ADR-based 設計判断記録 (`docs/adr/NNNN-*.md`)
 - LICENSE = MIT 維持
 - 外部 OSS adopt 前に security audit gate 必須 (Scorecard ≥ 7 + signed release + dep tree audit + user 承認)
@@ -67,7 +48,7 @@ Tier 1 default を継承 + 下記 addition:
 - **JP 法規制 compliance matrix を README 同梱** (改正個情法 26-2 / METI SBOM 導入手引き v2.0 / NTIA Minimum Elements / EU CRA Annex I)
 - **paid-API 6-layer defense intact** (constructor gate / pre-flight reserve / key non-leak / CI auto-call ban / default mock / no-credit-card service、 mcp-guard pattern literal inherit)
 
-## paid-API 6-layer defense (mcp-guard inherit、 cross-PJ universal)
+## paid-API 6-layer defense
 
 1. **Constructor gate**: 2-factor env check (`<PROVIDER>_API_KEY` + `SBOM_PILOT_LLM_PROVIDER=<provider>`)
 2. **Pre-flight reserve**: 3 ceiling (token / request count / cost) + poisoned state
@@ -82,5 +63,4 @@ paid provider 構築 path は **CLI layer の explicit construction のみ**、 
 
 - [spec.md](spec.md): PJ 仕様の SSoT (Stage 1 Discovery doc から育成)
 - [docs/adr/](docs/adr/): 設計判断記録
-- [.claude/memory_bank/](.claude/memory_bank/): session 連絡帳 (Cline 5-file pattern)
 - [tasks.md](tasks.md): Stage 4 で起草、 L0-L9 + AC-α-N mapping
