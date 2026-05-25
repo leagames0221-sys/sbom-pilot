@@ -42,7 +42,7 @@ jobs:
           node-version: '20'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           # Version is sourced from package.json "packageManager" field
           # (pnpm@10). Passing an explicit version here triggers the
