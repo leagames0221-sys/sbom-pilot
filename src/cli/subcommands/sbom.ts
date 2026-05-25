@@ -25,17 +25,39 @@ import { atomicWrite } from '../../util/atomic-write.js';
 import { validate } from '../../schemas/validate.js';
 import {
   EX_DATAERR,
+  EX_NOPERM,
   EX_OK,
   EX_SOFTWARE,
   EX_USAGE,
 } from '../../exit-codes.js';
 import { readPackageVersion } from '../version.js';
+import {
+  verifyAnchoreBinary,
+  type CosignTarget,
+  type CosignVerifyOptions,
+} from '../../subprocess/cosign.js';
 
 export type SbomFormat = 'spdx' | 'cyclonedx';
 
 export interface SbomCommandOptions {
   format?: string;
   output?: string;
+  // T-39 opt-in subprocess path (AC-NF-cosign-gate, ADR-0001).
+  // When `useSyft` (or `useGrype`) is true, the corresponding
+  // binary / signature / certificate triple MUST be provided so
+  // cosign can verify the binary before any spawn would occur.
+  useSyft?: boolean;
+  useGrype?: boolean;
+  syftBinary?: string;
+  syftSignature?: string;
+  syftCertificate?: string;
+  grypeBinary?: string;
+  grypeSignature?: string;
+  grypeCertificate?: string;
+  // Test injection: same shape as CosignVerifyOptions.spawn. Production
+  // callers leave this undefined so the real `cosign` binary on PATH is
+  // invoked.
+  cosignSpawn?: CosignVerifyOptions['spawn'];
 }
 
 export interface SbomActionContext {
@@ -61,6 +83,33 @@ function resolveFormat(raw: string | undefined): SbomFormat | null {
 /**
  * Top-level action wired by commander in src/cli/index.ts.
  */
+interface OptInBundle {
+  target: CosignTarget;
+  binary: string | undefined;
+  signature: string | undefined;
+  certificate: string | undefined;
+}
+
+function pickOptInBundle(options: SbomCommandOptions): OptInBundle | null {
+  if (options.useSyft === true) {
+    return {
+      target: 'syft',
+      binary: options.syftBinary,
+      signature: options.syftSignature,
+      certificate: options.syftCertificate,
+    };
+  }
+  if (options.useGrype === true) {
+    return {
+      target: 'grype',
+      binary: options.grypeBinary,
+      signature: options.grypeSignature,
+      certificate: options.grypeCertificate,
+    };
+  }
+  return null;
+}
+
 export async function sbomAction(
   projectDir: string,
   options: SbomCommandOptions,
@@ -73,6 +122,42 @@ export async function sbomAction(
     );
     ctx.exit(EX_USAGE);
     return;
+  }
+
+  // T-39: AC-NF-cosign-gate. Verify the Anchore binary cosign signature
+  // BEFORE any spawn could happen. On failure, refuse with EX_NOPERM and
+  // never run a subprocess. On success, Phase α still uses the TS-native
+  // emitter (subprocess parse-back is Phase β scope); we surface that
+  // honestly on stderr so the user is not misled.
+  const optIn = pickOptInBundle(options);
+  if (optIn !== null) {
+    if (
+      optIn.binary === undefined ||
+      optIn.signature === undefined ||
+      optIn.certificate === undefined
+    ) {
+      ctx.stderr(
+        `sbom-pilot sbom: --use-${optIn.target} requires --${optIn.target}-binary, --${optIn.target}-signature, --${optIn.target}-certificate.`,
+      );
+      ctx.exit(EX_USAGE);
+      return;
+    }
+    const verifyResult = verifyAnchoreBinary(optIn.target, {
+      binaryPath: optIn.binary,
+      signaturePath: optIn.signature,
+      certificatePath: optIn.certificate,
+      ...(options.cosignSpawn !== undefined
+        ? { spawn: options.cosignSpawn }
+        : {}),
+    });
+    if (!verifyResult.ok) {
+      ctx.stderr(`sbom-pilot sbom: ${verifyResult.message}`);
+      ctx.exit(EX_NOPERM);
+      return;
+    }
+    ctx.stderr(
+      `sbom-pilot sbom: ${verifyResult.message} (Phase α: subprocess wrap is Phase β scope — falling back to the TypeScript-native ${format} emitter for this run.)`,
+    );
   }
 
   let ir;

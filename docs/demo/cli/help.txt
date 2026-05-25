@@ -1,0 +1,22 @@
+Usage: sbom-pilot [options] [command]
+
+Offline-first SBOM (SPDX 2.3 / CycloneDX 1.5) + vulnerability scan + compliance
+reports for individual developers and SMBs.
+
+Options:
+  -V, --version                    output the version number
+  --no-color                       Disable ANSI colour codes in stdout / stderr.
+  -q, --quiet                      Suppress informational stderr (errors still
+                                   surface).
+  -h, --help                       display help for command
+
+Commands:
+  sbom [options] <project-dir>     Emit a Software Bill of Materials from a
+                                   project directory.
+  scan [options] <project-dir>     Scan a project directory against the offline
+                                   vuln-db and emit SARIF.
+  report [options] <project-dir>   Generate a compliance report against one of
+                                   four regulations.
+  suggest [options] <advisory-id>  Produce a free-text upgrade suggestion using
+                                   the configured LLM provider.
+  help [command]                   display help for command

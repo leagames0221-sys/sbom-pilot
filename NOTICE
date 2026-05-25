@@ -1,0 +1,160 @@
+sbom-pilot
+Copyright (c) 2026 tomohiro takada
+
+This product includes software developed by third parties; the
+attributions below are provided to satisfy:
+
+- Apache License 2.0 §4(d): a NOTICE entry for derivative-work
+  attribution and required notices.
+- AC-NF-license-attribution (per ADR-0001 §"Domain-specific design
+  rules"): a literal NOTICE entry citing the Apache-2.0 origin of any
+  module informed by Anchore prior-art.
+
+The project itself is distributed under the MIT License (see LICENSE).
+The third-party attributions below DO NOT relicense the project; they
+acknowledge upstream sources whose license terms require notice.
+
+================================================================
+1. Anchore prior-art (syft + grype) — Apache-2.0
+================================================================
+
+Project: anchore/syft
+Source: https://github.com/anchore/syft
+License: Apache License, Version 2.0
+Audited at: docs/adr/0001-prior-art-audit.md (2026-05-19)
+
+Project: anchore/grype
+Source: https://github.com/anchore/grype
+License: Apache License, Version 2.0
+Audited at: docs/adr/0001-prior-art-audit.md (2026-05-19)
+
+Adoption shape (per ADR-0001 §"Adoption shape"): REFERENCE-ONLY at
+the design layer. No syft or grype source code is vendored or
+copied verbatim. The TypeScript implementation under src/ was
+written from scratch.
+
+The following modules were INFORMED BY (not derived from) syft /
+grype design study during Stage 1.5 prior-art audit:
+
+  - src/parsers/                  SBOM-format manifest parsing
+                                  patterns (pURL handling, license
+                                  expression normalisation,
+                                  dependency-edge classification)
+                                  informed by syft.
+  - src/emitters/spdx-2.3.ts      SPDX emission field-mapping
+                                  conventions informed by syft.
+  - src/emitters/cyclonedx-1.5.ts CycloneDX emission field-mapping
+                                  + deterministic serialNumber
+                                  derivation informed by syft.
+  - src/scanners/correlator.ts    OSV advisory ↔ component
+                                  correlation heuristics + range-
+                                  event traversal informed by grype.
+  - src/scanners/severity.ts      Severity normalisation +
+                                  ranking conventions informed by
+                                  grype.
+  - src/util/credential-scrub.ts  Credential-pattern masking at the
+                                  emitter boundary — direct lesson
+                                  from CVE-2025-65965 (grype
+                                  GHSA-6gxw-85q2-q646, registry
+                                  credential disclosure to output
+                                  file). The mitigation pattern is
+                                  required by AC-NF-credentials.
+
+Subprocess wrap (per ADR-0001 §"Adoption shape" + T-39): when a user
+explicitly passes `--use-syft` or `--use-grype`, sbom-pilot spawns the
+locally-installed Anchore binary and parses its stdout. The binary's
+cosign signature must verify before spawn (AC-NF-cosign-gate);
+otherwise sbom-pilot refuses with sysexits EX_NOPERM. The binary is
+NOT distributed with sbom-pilot — the user is responsible for
+installing it via the upstream Anchore-documented install path.
+
+================================================================
+2. Vendored JSON schemas — Apache-2.0 / OASIS Royalty-Free
+================================================================
+
+The project vendors authoritative JSON Schema documents from the
+following upstream specifications for runtime emission gating
+(`src/schemas/validate.ts` compiles each via ajv and validates the
+serialised SBOM/SARIF document before atomic write).
+
+--- SPDX 2.3 ---
+File: src/schemas/spdx-2.3.json
+Source: https://github.com/spdx/spdx-spec
+License: Apache License, Version 2.0
+Steward: The Linux Foundation / SPDX Project
+The file is vendored verbatim from the upstream SPDX repository;
+the retrieval timestamp is recorded in the schema's $id field.
+
+--- CycloneDX 1.5 ---
+Files:
+  src/schemas/cyclonedx-1.5.json
+  src/schemas/cyclonedx-jsf-0.82.schema.json
+  src/schemas/cyclonedx-spdx.schema.json
+Source: https://github.com/CycloneDX/specification
+License: Apache License, Version 2.0
+Steward: OWASP Foundation / CycloneDX Project
+The supplementary `cyclonedx-jsf-0.82.schema.json` (JSON Signature
+Format) and `cyclonedx-spdx.schema.json` (SPDX-licensing subset) are
+referenced by `cyclonedx-1.5.json` via `$ref`; vendoring them
+verbatim keeps schema resolution offline-deterministic.
+
+--- SARIF 2.1.0 ---
+File: src/schemas/sarif-2.1.0.json
+Source: https://docs.oasis-open.org/sarif/sarif/v2.1.0/
+License: OASIS Royalty-Free (per OASIS IPR Policy 10.2.1)
+Steward: OASIS Open / SARIF TC
+The file is vendored from the OASIS-published v2.1.0 specification.
+
+================================================================
+3. Runtime dependencies (auto-installed via pnpm)
+================================================================
+
+The project's runtime dependencies (`package.json` "dependencies"
+field) are auto-installed into `node_modules/` from the npm
+registry. Each package ships its own LICENSE file under
+`node_modules/<pkg>/LICENSE`. The licenses below are the snapshot
+at the time of writing (consult `node_modules/<pkg>/LICENSE` for
+the canonical text at install time):
+
+  commander       — MIT     — https://github.com/tj/commander.js
+  zod             — MIT     — https://github.com/colinhacks/zod
+  yaml            — ISC     — https://github.com/eemeli/yaml
+  ajv             — MIT     — https://github.com/ajv-validator/ajv
+  ajv-formats     — MIT     — https://github.com/ajv-validator/ajv-formats
+
+Dev dependencies (test framework, type checker, lint, etc.) are not
+distributed with the published package and are not enumerated here;
+their licenses are tracked in the pnpm lockfile.
+
+================================================================
+4. Standards + specifications referenced (informative)
+================================================================
+
+The compliance reports under src/emitters/compliance/ cite excerpts
+from the following authoritative texts. The texts themselves are
+government / public-body publications under their respective use
+terms; no proprietary text is vendored in this repository (only
+short citations + headings, well within fair-use / fair-quotation
+norms of the respective jurisdictions):
+
+  - 改正個人情報保護法 第26条の2 (Japan, 個人情報保護委員会)
+  - METI ソフトウェア管理に向けた SBOM の導入に関する手引 v2.0 (Japan, 経済産業省)
+  - NTIA Minimum Elements for a Software Bill of Materials (U.S.,
+    National Telecommunications and Information Administration)
+  - EU Cyber Resilience Act, Annex I — Essential Cybersecurity
+    Requirements (European Union)
+
+================================================================
+5. Apache-2.0 §4(d) literal acknowledgement
+================================================================
+
+This NOTICE file is provided pursuant to Apache License, Version 2.0,
+§4(d). Redistributors of sbom-pilot must include a copy of this
+NOTICE alongside the LICENSE file when redistributing in source or
+object form, per the License terms.
+
+The full text of Apache License, Version 2.0 is available at:
+  https://www.apache.org/licenses/LICENSE-2.0
+
+----
+End of NOTICE.

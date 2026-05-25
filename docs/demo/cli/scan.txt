@@ -1,0 +1,98 @@
+sbom-pilot scan summary: 3 finding(s) — CRITICAL 0 / HIGH 1 / MODERATE 1 / LOW 1 / UNKNOWN 0
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "pkg:npm/lodash@4.17.21",
+                  "kind": "package",
+                  "name": "lodash@4.17.21"
+                }
+              ]
+            }
+          ],
+          "message": {
+            "text": "Prototype Pollution in lodash (synthetic). Affected: lodash@4.17.21. Suggested upgrade: 4.17.22. Aliases: CVE-2026-99001"
+          },
+          "ruleId": "GHSA-test-lodash-001"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "pkg:npm/express@4.21.0",
+                  "kind": "package",
+                  "name": "express@4.21.0"
+                }
+              ]
+            }
+          ],
+          "message": {
+            "text": "Open redirect in express (synthetic). Affected: express@4.21.0. Suggested upgrade: 4.21.1. Aliases: CVE-2026-99002"
+          },
+          "ruleId": "GHSA-test-express-002"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "pkg:npm/chalk@5.3.0",
+                  "kind": "package",
+                  "name": "chalk@5.3.0"
+                }
+              ]
+            }
+          ],
+          "message": {
+            "text": "ReDoS in chalk format strings (synthetic). Affected: chalk@5.3.0. Suggested upgrade: 5.3.1. Aliases: CVE-2026-99003"
+          },
+          "ruleId": "GHSA-test-chalk-003"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/leagames0221-sys/sbom-pilot",
+          "name": "sbom-pilot",
+          "rules": [
+            {
+              "helpUri": "https://example.com/GHSA-test-lodash-001",
+              "id": "GHSA-test-lodash-001",
+              "name": "GHSA-test-lodash-001",
+              "shortDescription": {
+                "text": "Prototype Pollution in lodash (synthetic)"
+              }
+            },
+            {
+              "helpUri": "https://example.com/GHSA-test-express-002",
+              "id": "GHSA-test-express-002",
+              "name": "GHSA-test-express-002",
+              "shortDescription": {
+                "text": "Open redirect in express (synthetic)"
+              }
+            },
+            {
+              "helpUri": "https://example.com/GHSA-test-chalk-003",
+              "id": "GHSA-test-chalk-003",
+              "name": "GHSA-test-chalk-003",
+              "shortDescription": {
+                "text": "ReDoS in chalk format strings (synthetic)"
+              }
+            }
+          ],
+          "version": "0.1.0"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

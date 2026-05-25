@@ -78,6 +78,26 @@ module.exports = {
       from: {},
       to: { circular: true },
     },
+    {
+      name: 'no-orphans',
+      severity: 'warn',
+      comment:
+        'Orphan modules (no incoming imports + not entry-points) suggest dead code under src/. Entry points (bin / scripts / tests / config files / type-only barrels) are excluded via individual path-anchored patterns below; dependency-cruiser flags alternation regexes as unsafe so we list each path prefix as a separate literal anchor.',
+      from: {
+        orphan: true,
+        pathNot: [
+          '^bin/',
+          '^scripts/',
+          '^tests/',
+          '^docs/',
+          'vitest\\.config\\.ts$',
+          '\\.dependency-cruiser\\.cjs$',
+          '\\.d\\.ts$',
+          '/types\\.ts$',
+        ],
+      },
+      to: {},
+    },
   ],
 
   options: {

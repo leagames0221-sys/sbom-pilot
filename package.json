@@ -32,6 +32,7 @@
     "test:coverage": "vitest run --coverage",
     "audit": "pnpm audit --audit-level=high",
     "lint:deps": "depcruise --config .dependency-cruiser.cjs src tests scripts",
+    "bench": "tsx scripts/benchmark.ts",
     "prepublishOnly": "pnpm run typecheck && pnpm run test && pnpm run build"
   },
   "packageManager": "pnpm@10.33.4",
