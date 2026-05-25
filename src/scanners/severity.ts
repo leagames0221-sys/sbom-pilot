@@ -27,51 +27,19 @@
  *
  * Spec mapping: AC-002-1, AC-002-5, AC-002-7, ADR-0005, ADR-0006.
  */
-import type { OsvSeverityLabel } from './vuln-db.js';
+import type { OsvSeverityLabel } from '../ir/severity.js';
 import type { Finding } from './correlator.js';
-
-/**
- * Numeric rank for each OSV severity label. CRITICAL is the highest.
- * UNKNOWN sorts last so missing-severity findings appear at the bottom
- * of the report rather than masquerading as low-importance items.
- */
-export const SEVERITY_RANK: Readonly<Record<OsvSeverityLabel, number>> = {
-  CRITICAL: 4,
-  HIGH: 3,
-  MODERATE: 2,
-  LOW: 1,
-  UNKNOWN: 0,
-};
-
-export const SEVERITY_DESC: ReadonlyArray<OsvSeverityLabel> = [
-  'CRITICAL',
-  'HIGH',
-  'MODERATE',
-  'LOW',
-  'UNKNOWN',
-];
-
-/**
- * Compare two severity labels for sort ordering.
- *
- * - Negative when `a` is MORE severe than `b` (so it sorts first under
- *   a default ascending sort)
- * - Positive when `b` is more severe
- * - Zero on equal rank
- *
- * This matches the `Array.prototype.sort` comparator contract so callers
- * can use it directly: `findings.sort((x, y) => compareSeverity(x.severity, y.severity))`.
- */
-export function compareSeverity(
-  a: OsvSeverityLabel,
-  b: OsvSeverityLabel,
-): -1 | 0 | 1 {
-  const ra = SEVERITY_RANK[a];
-  const rb = SEVERITY_RANK[b];
-  if (ra > rb) return -1;
-  if (ra < rb) return 1;
-  return 0;
-}
+// Severity vocabulary + ordering primitives live on the IR layer
+// (src/ir/severity.ts) so Emitters can sort by severity without
+// violating ADR-0006 edge 4 (Emitters → Scanners forbidden).
+// Re-export here to preserve the current public surface for callers
+// already importing from src/scanners/severity.js.
+export {
+  SEVERITY_RANK,
+  SEVERITY_DESC,
+  compareSeverity,
+} from '../ir/severity.js';
+import { compareSeverity, SEVERITY_RANK } from '../ir/severity.js';
 
 /**
  * Return a new array with findings sorted by severity (most severe

@@ -61,12 +61,12 @@ export interface OsvSeverity {
   score: string;
 }
 
-export type OsvSeverityLabel =
-  | 'CRITICAL'
-  | 'HIGH'
-  | 'MODERATE'
-  | 'LOW'
-  | 'UNKNOWN';
+// OsvSeverityLabel moved to src/ir/severity.ts at T-35 (ADR-0006 edge 4:
+// Emitters must not import from Scanners, so the severity vocabulary
+// lives on the IR layer where emitters can reach it directly). Re-export
+// here so existing `from '.../scanners/vuln-db.js'` callers stay valid.
+export type { OsvSeverityLabel } from '../ir/severity.js';
+import type { OsvSeverityLabel } from '../ir/severity.js';
 
 export interface OsvVulnerability {
   id: string;
