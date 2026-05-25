@@ -35,6 +35,12 @@ jobs:
       contents: read
       actions: read
 
+    # Note: Scorecard's `publish_results: true` mode enforces a
+    # "workflow restriction" — the analysis job MUST consist of `uses:`
+    # steps only (no inline `run:`). The skip-on-private guard that
+    # protected the workflow pre-PUBLIC-flip has been removed now that
+    # the repo is PUBLIC; the workflow is active on every push to main.
+    # See https://github.com/ossf/scorecard-action#workflow-restrictions
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
