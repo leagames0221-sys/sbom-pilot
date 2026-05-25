@@ -6,6 +6,29 @@ compliance-aligned reports (改正個情法 / METI SBOM 導入手引き / NTIA M
 Elements / EU CRA). We take the security posture of this tool seriously
 precisely because it is itself a security tool.
 
+## Supply-chain defense layers
+
+Following the ongoing Shai-Hulud / Mini Shai-Hulud / TeamPCP npm worm waves
+(Sep 2025 → May 2026, > 400 packages compromised across at least 5 distinct
+campaigns), this repo applies the following free, no-paid-service defense
+layers:
+
+| Layer | Implementation | Effect |
+| --- | --- | --- |
+| Cooldown (npm side) | `.npmrc` `minimum-release-age=10080` (= 7 days) | Refuses to install any package version published less than 7 days ago. Absorbs essentially all known supply-chain attack lifetimes (axios 2026-03 = 4-5 h; Shai-Hulud TanStack 2026-05 = 22 m publish burst). |
+| Cooldown (Dependabot side) | `.github/dependabot.yml` `cooldown:` with 5 / 7 / 14 day gates per semver level | Defers automated update PRs until the cooldown window clears. |
+| Lifecycle script gate | `.npmrc` `ignore-scripts=true` | Disables `postinstall` / `preinstall` / `install` scripts — primary code-execution vector in the original Shai-Hulud worm. No native compilation step in this repo. |
+| Audit floor | `.npmrc` `audit-level=high` | Fails `pnpm audit` on any high-or-critical advisory. |
+| Lockfile integrity | `pnpm install --frozen-lockfile` in CI (existing) | Verifies every package against its committed integrity hash. |
+| 3-OS test matrix | CI runs ubuntu / macos / windows (existing) | Platform-specific compromises cannot land green on all three. |
+| Static + dep audit | `pnpm typecheck` + `pnpm audit` + CodeQL + gitleaks + ADR-0007 hash gate (existing) | Multiple complementary scanners. |
+
+Primary sources:
+
+- pnpm `minimumReleaseAge` shipped in pnpm 10.16 (2025-09); default-on in pnpm 11.0 (2026-05) at 1 day.
+- Dependabot `cooldown:` shipped 2025-07-01 ([GitHub Changelog](https://github.blog/changelog/2025-07-01-dependabot-supports-configuration-of-a-minimum-package-age/)).
+- 7-day window rationale: [cooldowns.dev](https://cooldowns.dev/).
+
 ## Supported versions
 
 Until the first 1.0 release, security fixes ship against `main` only.
