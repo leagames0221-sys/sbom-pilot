@@ -12,6 +12,7 @@
  *
  * Spec mapping: AC-005-1, AC-005-3, AC-005-5, ADR-0006.
  */
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { EX_CONFIG, EX_USAGE } from '../exit-codes.js';
 import { formatDidYouMeanLine } from './did-you-mean.js';
@@ -203,4 +204,21 @@ export async function runCli(options: CliRunOptions): Promise<void> {
     if (e instanceof Error && e.name === 'CommanderError') return;
     throw e;
   }
+}
+
+// Entry point only when invoked as a script (not when imported as a
+// module by tests or `bin/sbom-pilot.ts`). Sibling pattern from
+// mcp-guard + agentic-appsec-pilot — without this self-invoke, the
+// package.json `bin` pointer (`dist/cli/index.js`) exits silently
+// because Node loads the module exports without running `runCli`.
+const isEntryPoint = (() => {
+  try {
+    return process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1];
+  } catch {
+    return false;
+  }
+})();
+
+if (isEntryPoint) {
+  void runCli({ argv: process.argv.slice(2) });
 }
