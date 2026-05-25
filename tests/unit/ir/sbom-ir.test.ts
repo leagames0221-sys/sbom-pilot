@@ -40,9 +40,9 @@ describe('SbomIR type contract (ADR-0005)', () => {
 
   it('LicenseExpression has all three fields optional', () => {
     expectTypeOf<LicenseExpression>().toEqualTypeOf<{
-      spdxId?: string;
-      name?: string;
-      expression?: string;
+      spdxId?: string | undefined;
+      name?: string | undefined;
+      expression?: string | undefined;
     }>();
   });
 
