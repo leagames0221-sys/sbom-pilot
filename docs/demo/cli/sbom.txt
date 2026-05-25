@@ -1,0 +1,149 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "creationInfo": {
+    "created": "2026-05-21T17:09:06.439Z",
+    "creators": [
+      "Tool: sbom-pilot-0.1.0"
+    ]
+  },
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "urn:sbom-pilot:spdx-2.3:7b99211b2e9bbe39",
+  "name": "npm-tiny-fixture",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-root",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:npm/npm-tiny-fixture@1.0.0",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "npm-tiny-fixture",
+      "supplier": "NOASSERTION",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-node-modules-scope-example",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:npm/%40scope/example@1.0.0",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "ISC",
+      "licenseDeclared": "ISC",
+      "name": "@scope/example",
+      "supplier": "NOASSERTION",
+      "versionInfo": "1.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-node-modules-chalk",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:npm/chalk@5.3.0",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "chalk",
+      "supplier": "NOASSERTION",
+      "versionInfo": "5.3.0"
+    },
+    {
+      "SPDXID": "SPDXRef-node-modules-express",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:npm/express@4.21.0",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "express",
+      "supplier": "NOASSERTION",
+      "versionInfo": "4.21.0"
+    },
+    {
+      "SPDXID": "SPDXRef-node-modules-lodash",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:npm/lodash@4.17.21",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "lodash",
+      "supplier": "NOASSERTION",
+      "versionInfo": "4.17.21"
+    },
+    {
+      "SPDXID": "SPDXRef-node-modules-typescript",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:npm/typescript@5.7.2",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "name": "typescript",
+      "supplier": "NOASSERTION",
+      "versionInfo": "5.7.2"
+    }
+  ],
+  "relationships": [
+    {
+      "relatedSpdxElement": "SPDXRef-root",
+      "relationshipType": "DESCRIBES",
+      "spdxElementId": "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-node-modules-scope-example",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-root"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-node-modules-chalk",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-root"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-node-modules-express",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-root"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-node-modules-lodash",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-root"
+    },
+    {
+      "relatedSpdxElement": "SPDXRef-node-modules-typescript",
+      "relationshipType": "DEPENDS_ON",
+      "spdxElementId": "SPDXRef-root"
+    }
+  ],
+  "spdxVersion": "SPDX-2.3"
+}

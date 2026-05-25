@@ -1,12 +1,12 @@
 # activeContext — sbom-pilot
 
-> Current session focus + immediate next action. Update at the end of every session.
+> Current state + immediate next action. Update at the end of every work cycle.
 
 ## Current phase
 
-**Phase α exit COMPLETE 2026-05-20 — top-rank verdict literal achieved per the project's rubric (`docs/adr/0007-phase-alpha-exit-gate.md`).** L0..L9 all 40 / 40 tasks landed. Two independent fresh-context reviewer CONFIRM 7/7 verdicts + a writer 10-item self-audit polish + a user-requested 3rd-round audit cleanup, with explicit user-gate granted 2026-05-20. Repository flipped PRIVATE → PUBLIC same day.
+**Phase α COMPLETE 2026-05-20.** L0..L9 all 40 / 40 tasks landed. Two independent fresh-context reviewer CONFIRM 7/7 + writer 10-item self-audit polish + 3rd-round audit cleanup at commit `f7d8296`. Repository PUBLIC.
 
-Source for verdict claim: [`docs/verify/phase-alpha-round-1.md`](../../docs/verify/phase-alpha-round-1.md) on commit `f7d8296` of https://github.com/leagames0221-sys/sbom-pilot.
+Source for verify claim: [`docs/verify/phase-alpha-round-1.md`](../../docs/verify/phase-alpha-round-1.md) on commit `f7d8296` of https://github.com/leagames0221-sys/sbom-pilot.
 
 ## Layer-by-layer completion summary (55 commits on main)
 
@@ -31,7 +31,7 @@ Source for verdict claim: [`docs/verify/phase-alpha-round-1.md`](../../docs/veri
 - `pnpm run lint:deps` = 0 errors / 2 informational warnings (108 modules, 310 deps cruised)
 - Line coverage **97.58%** (threshold 90) / branch **86.56%** (threshold 85) / function **99.32%** / statement **97.58%**
 - 3-OS CI (Ubuntu / macOS / Windows) success on every L9 commit
-- OpenSSF Scorecard + CodeQL + Dependabot configured + active post-PUBLIC-flip
+- OpenSSF Scorecard + CodeQL + Dependabot configured + active post-PUBLIC
 - Benchmark wall-clock (1k components): sbom 31 ms / scan 11 ms (regression budget 5 s; spec budget AC-001-1 / AC-002-1 = 30 s)
 - All 4 CLI subcommands wired end-to-end (sbom / scan / report / suggest)
 - 7 ADRs Accepted (0001-0007); ADR-0006 forbidden-edge lint CI-gated
@@ -52,12 +52,11 @@ Source for verdict claim: [`docs/verify/phase-alpha-round-1.md`](../../docs/veri
 1. Round 1 reviewer (commit `38ee60f`, 2026-05-20T17:43+09:00): CONFIRM 7/7, drift flags ZERO
 2. Writer self-audit (post round 1): 10 findings + 1 latent cosign-spawn bug → all fixed in commit `23e6c1b`
 3. Round 2 reviewer (commit `23e6c1b`, 2026-05-20T18:30+09:00): CONFIRM 7/7, regression count ZERO
-4. User-requested round 3 audit: 3 doc-level findings → all fixed in commit `f7d8296`
-5. User explicit promotion gate granted 2026-05-20 → top-rank verdict authorised + PUBLIC flip executed
+4. 3rd-round audit: 3 doc-level findings → all fixed in commit `f7d8296`
 
 ## Immediate next action
 
-**None — Phase α exit COMPLETE.** Phase β candidate scope (NOT yet started):
+**None — Phase α COMPLETE.** Phase β candidate scope (NOT yet started):
 
 - Library API surface (`src/index.ts` populate with `generate / scan / report` wrappers around CLI subcommand actions; ADR-0006 §"Public API surface" already records this as Phase β scope)
 - Actual subprocess wrap for syft / grype (parse stdout to IR, gated by the already-implemented cosign verify)
