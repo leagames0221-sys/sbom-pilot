@@ -26,6 +26,16 @@ updates:
       - npm
     commit-message:
       prefix: "chore(deps)"
+    # 7-day cooldown — defer Dependabot PRs until the new version has been
+    # published for at least 7 days. Mirrors the .npmrc minimum-release-age
+    # gate and absorbs essentially all known supply-chain attack lifetimes
+    # (axios 2026-03-31 = 4-5 h; Shai-Hulud TanStack 2026-05-11 = 22 m).
+    # GitHub native feature GA 2025-07-01.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 5
     groups:
       vitest:
         patterns:
@@ -56,3 +66,8 @@ updates:
       - github-actions
     commit-message:
       prefix: "chore(actions)"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 5
