@@ -24,8 +24,7 @@
  */
 import type { SbomIR } from '../../ir/index.js';
 import type { Finding } from '../../scanners/correlator.js';
-import type { OsvSeverityLabel } from '../../scanners/vuln-db.js';
-import { rankBySeverity } from '../../scanners/severity.js';
+import { compareSeverity, type OsvSeverityLabel } from '../../ir/severity.js';
 import { formatComplianceFooter } from './_shared.js';
 
 const PRIORITY_LABELS: ReadonlySet<OsvSeverityLabel> = new Set([
@@ -107,7 +106,12 @@ export function emitAppi26_2Report(
   options: AppiReportOptions = {},
 ): string {
   const creatorVersion = options.creatorVersion ?? ir.document.creatorVersion;
-  const ranked = rankBySeverity(findings);
+  // Defensive rank: emitter is robust against un-ranked input. Sort
+  // primitives come from the IR layer (src/ir/severity.ts) so this
+  // import does not cross the ADR-0006 Emitters → Scanners edge.
+  const ranked: Finding[] = [...findings].sort((a, b) =>
+    compareSeverity(a.severity, b.severity),
+  );
   const priority = ranked.filter((f) => PRIORITY_LABELS.has(f.severity));
   const other = ranked.filter((f) => !PRIORITY_LABELS.has(f.severity));
 

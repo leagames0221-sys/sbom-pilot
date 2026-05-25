@@ -58,6 +58,14 @@ jobs:
       - name: Test + coverage
         run: pnpm run test:coverage
 
+      - name: Lint dependency direction (ADR-0006)
+        # T-35: enforce the 5 forbidden edges in the 5-layer architecture
+        # (Parsers → Emitters, Scanners → Parsers, IR → anything,
+        # Emitters → Scanners, Anything → CLI). The CI gate is intentional:
+        # an inadvertent layer breach should fail PR review here, not on
+        # the next refactor.
+        run: pnpm run lint:deps
+
       - name: Audit (high severity threshold)
         # pnpm audit exits non-zero on any vuln at-or-above --audit-level.
         # Documented residuals (if any) tracked in CHANGELOG.

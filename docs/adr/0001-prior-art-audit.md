@@ -1,6 +1,6 @@
 # ADR-0001: Prior-art adoption audit — syft + grype
 
-**Status**: Proposed (awaiting Stage 1.5 user review gate)
+**Status**: Accepted (Stage 1.5 user-approved 2026-05-19; propagated to Stage 2 EARS AC-NF-credentials / AC-NF-cosign-gate / AC-NF-license-attribution + Stage 4 T-39 cosign gate + T-36 NOTICE)
 **Date**: 2026-05-19
 **Author**: tomohiro takada (`leagames0221-sys`)
 **Stage**: 1.5 (between Discovery and Requirements)

@@ -1,58 +1,417 @@
 # sbom-pilot
 
-> Defensive-first CLI for generating Software Bill of Materials (SBOM),
-> scanning dependencies for known vulnerabilities, and producing
-> compliance-aligned reports for individual developers and SMBs.
+> **Defensive-first CLI for SBOM + vulnerability scanning + JP/US/EU
+> compliance reports.** Generate SPDX 2.3 / CycloneDX 1.5 from a
+> project's lockfiles, correlate against an offline OSV cache, emit
+> SARIF for code-scanning dashboards, and produce per-regulation
+> compliance reports (改正個情法 26-2 / METI SBOM v2.0 / NTIA Minimum
+> Elements / EU CRA Annex I). No paid services, no credit card
+> required, no network egress on the default path. Built for individual
+> developers and SMBs who need to ship the same SBOM-and-vuln-report
+> deliverables an enterprise security team produces — without the
+> enterprise toolchain.
+
+**Plain-language summary** *(for non-specialist readers)*
+
+- **SBOM (Software Bill of Materials)** — a machine-readable list of every
+  library a piece of software pulls in (direct + transitive). Think
+  "ingredients label" for software.
+- **Vulnerability scan** — cross-references that ingredients list against
+  public databases (OSV / NVD / GHSA) of known security defects.
+- **Compliance report** — restates the SBOM + scan output in the exact
+  shape that a specific regulation requires (Japanese APPI 26-2 breach
+  reports, US federal procurement under EO 14028, EU CRA conformity, etc.).
+- **Why it matters** — supply-chain regulations now apply to small teams
+  too, but enterprise SCA platforms are priced for enterprise budgets.
+  `sbom-pilot` produces the same deliverables on a free / local stack.
+
+[![ci](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/ci.yml/badge.svg)](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/scorecard.yml/badge.svg)](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/scorecard.yml)
+[![CodeQL](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/codeql.yml/badge.svg)](https://github.com/leagames0221-sys/sbom-pilot/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Constraint: zero credit card](https://img.shields.io/badge/Constraint-zero%20credit%20card-blue)](#selected-under)
+[![Constraint: local LLM (default)](https://img.shields.io/badge/Constraint-local%20LLM%20%28default%29-blue)](#selected-under)
+[![Constraint: free / OSS only](https://img.shields.io/badge/Constraint-free%20%2F%20OSS%20only-blue)](#selected-under)
+[![Constraint: security defense-in-depth](https://img.shields.io/badge/Constraint-security%20defense--in--depth-blue)](#selected-under)
+
+---
+
+## Selected under
+
+> **The 4-constraint set** (applied across the full portfolio — verified consistent across all 11 portfolio repos):
 >
-> **Status**: Stage 1 Discovery in progress. Phase α (★★★ tool tier verify)
-> pending. This README will expand with quick-start, architecture diagram,
-> and verified metrics once Phase α completes (per `tool_tier_rubric.md`).
+> 1. **Zero credit card** — no paid API / cloud service required for the default path. A reviewer can clone, install, and run with $0 spend and no payment method on file.
+> 2. **Local LLM (default)** — when an LLM is involved, the default path is local (Ollama / similar) or deterministic mock. Paid cloud LLM is opt-in via env var, never default.
+> 3. **Free / OSS only** — every runtime dependency is permissively-licensed open source (MIT / Apache-2.0 / BSD-3); no proprietary SDK at build time.
+> 4. **Security defense-in-depth** — secrets-scan CI + `.gitignore` hardening, encrypted-at-rest where PII is involved, append-only audit logging where applicable, dep-vuln gating (`pip-audit` / `pnpm audit`), paid-API constructor gate where applicable.
 
-## What it does (planned scope, locked at Stage 1 Discovery)
+This repo specifically demonstrates: defensive-first SBOM CLI with `paid-API 6-layer defense` (constructor gate + pre-flight reserve + key non-leak + CI auto-call ban + default mock + zero-CC-service-only), Ollama-default `suggest` provider with mock fallback, and offline-first vuln scan against an OSV cache snapshot. See [docs/PROVIDERS.md](docs/PROVIDERS.md) for the literal 6-layer defense spec.
 
-1. **SBOM generation** — emit SPDX 2.3 + CycloneDX 1.5 from a project's
-   dependency manifest (npm / pnpm / pip / go.mod / cargo / maven, exact
-   matrix decided at Discovery).
-2. **Vulnerability correlation** — match the generated SBOM against OSV /
-   NVD / GHSA snapshots, report findings with severity + remediation hints.
-3. **Compliance reporting** — produce per-regulation reports aligned with:
-   - 改正個情法 (Japan APPI 2026, Article 26-2 incident reporting)
-   - METI SBOM 導入手引き v2.0 (Japan, 2024-08)
-   - NTIA Minimum Elements (US EO 14028)
-   - EU Cyber Resilience Act (CRA) Annex I
+---
 
-## Why another SBOM tool?
+## 1. Problem
 
-The decomposed-prior-art seeds for this project are
-[anchore/syft](https://github.com/anchore/syft) (SBOM generator) and
-[anchore/grype](https://github.com/anchore/grype) (vulnerability scanner).
-The differentiation axis (final shape locked at Stage 1 Discovery):
+Supply-chain security is now a regulatory requirement, not just a best
+practice:
 
-- **JP-compliance-first reporting** — local-language regulatory output
-  (改正個情法 / METI), a niche under-served by US-centric tooling.
-- **Offline-first** — vulnerability DB snapshots ship in cache form, no
-  network egress required for core workflow.
-- **Sibling to [mcp-guard](https://github.com/leagames0221-sys/mcp-guard)**
-  (MCP server security tool, ★★★ Strong Hire verified 2026-05-19) —
-  consistent CLI UX, shared SARIF emitter, shared paid-API 6-layer defense.
+- **Japan**: 改正個人情報保護法 26-2 (2022 in force) mandates
+  incident-class reporting that, in practice, requires a versioned
+  component inventory of the system that leaked. METI's SBOM 導入手引き
+  v2.0 (2024-08) sets the minimum-field baseline for that inventory.
+- **United States**: NTIA Minimum Elements (per Executive Order 14028)
+  defines what an SBOM must contain for federal procurement.
+- **European Union**: Cyber Resilience Act (CRA, Annex I) extends
+  similar obligations to "products with digital elements" sold into
+  the EU, with phased enforcement through 2027.
 
-## Project status
+Enterprise security teams have the budget for paid SCA platforms.
+Individual developers and SMBs do not — but the legal obligations
+apply identically. `sbom-pilot` exists to close that gap with a
+single zero-cost CLI.
 
-| Phase | Status |
-| --- | --- |
-| Stage 1 Discovery | 🚧 In progress (see `spec.md`) |
-| Stage 2 Requirements (EARS) | ⏳ Pending |
-| Stage 3 Design + ADRs | ⏳ Pending |
-| Stage 4 Tasks (L0–L9 breakdown) | ⏳ Pending |
-| Phase 1 implementation | ⏳ Pending |
-| ★★★ tier verify (Writer/Reviewer pattern) | ⏳ Pending |
+## 2. Quick start
 
-## License
+This is a Phase α PoC. The package is **not yet published to the npm
+registry** — Phase α runs from a local clone. The `npm install -g`
+path will activate after the Phase α PUBLIC-flip + first
+`v0.1.0` tag.
 
-[MIT](LICENSE) © 2026 tomohiro takada.
+```bash
+# Run from a local checkout (current Phase α path):
+git clone https://github.com/leagames0221-sys/sbom-pilot.git
+cd sbom-pilot
+pnpm install --frozen-lockfile
+pnpm build                          # compiles src/ → dist/
+node dist/cli/index.js --help       # or: pnpm exec tsx bin/sbom-pilot.ts --help
+```
 
-## Security
+After Phase α PUBLIC flip + npm publish:
 
-See [`SECURITY.md`](SECURITY.md) for the disclosure policy and the hardening
-posture. This is a security tool — we take its own security posture
-seriously.
+```bash
+# npm install -g sbom-pilot     # ← available once Phase α tags v0.1.0
+# sbom-pilot --help
+```
+
+Subcommand examples (invoke via the resolved binary, abbreviated as
+`sbom-pilot` below):
+
+```bash
+# Generate an SPDX 2.3 SBOM from a project directory
+sbom-pilot sbom ./my-project --format spdx > sbom.spdx.json
+
+# Scan the project for known vulnerabilities (offline DB)
+sbom-pilot scan ./my-project --output findings.sarif --fail-on critical,high
+
+# Produce a Japan APPI 26-2 compliance report
+sbom-pilot report ./my-project --standard appi-26-2 > report.txt
+
+# Get an upgrade suggestion for a specific advisory (Ollama-default)
+sbom-pilot suggest GHSA-1234-5678-90ab
+```
+
+No flags require an API key. No subcommand writes credentials.
+`scan` runs with zero network egress by default. The `--refresh`
+flag is reserved for a forthcoming vuln-db refresh script (T-29/T-30);
+in the current Phase α build it is a no-op that emits a stderr advisory
+and proceeds with the existing cache. Populate / update the cache
+manually until the refresh wiring lands.
+
+### Demo output
+
+The four subcommands above produce the following terminal output against
+`tests/fixtures/projects/npm-tiny` (synthetic 6-package npm project, no real
+deps). Rendered from raw stdout/stderr by `docs/demo/cli/render.py` (Pillow +
+MS Gothic, no network egress).
+
+| Command | Screenshot |
+|---|---|
+| `sbom-pilot --help` | [help.png](docs/demo/cli/help.png) |
+| `sbom-pilot sbom <dir> --format spdx` | [sbom.png](docs/demo/cli/sbom.png) |
+| `sbom-pilot scan <dir> --vuln-db <seed>` | [scan.png](docs/demo/cli/scan.png) |
+| `sbom-pilot report <dir> --standard appi-26-2` | [report.png](docs/demo/cli/report.png) |
+
+The `scan` output above shows 3 synthetic findings (1 HIGH lodash + 1 MODERATE
+express + 1 LOW underscore) against the npm-tiny fixture seeded by
+`tests/fixtures/vuln-db-seed/vuln-db.json`. The `report` output is in Japanese
+because `appi-26-2` (個人情報保護法 第26条の2) is a JP regulation; English
+reports are available via `--standard ntia` / `eu-cra` / `meti-sbom-v2`.
+
+To regenerate the screenshots locally:
+
+```bash
+# Capture raw outputs (Bash redirect; PowerShell users: pipe through Set-Content -Encoding utf8)
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts --help > docs/demo/cli/help.txt 2>&1
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts sbom tests/fixtures/projects/npm-tiny --format spdx --no-color > docs/demo/cli/sbom.txt 2>&1
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts scan tests/fixtures/projects/npm-tiny --vuln-db tests/fixtures/vuln-db-seed/vuln-db.json --no-color > docs/demo/cli/scan.txt 2>&1
+NO_COLOR=1 pnpm exec tsx bin/sbom-pilot.ts report tests/fixtures/projects/npm-tiny --standard appi-26-2 --vuln-db tests/fixtures/vuln-db-seed/vuln-db.json --no-color > docs/demo/cli/report.txt 2>&1
+
+# Render PNGs (system Python >= 3.10 + Pillow)
+python docs/demo/cli/render.py
+```
+
+## 3. Subcommands
+
+| Subcommand | Purpose | Default output | Exit policy |
+|---|---|---|---|
+| `sbom <project-dir>` | Emit SPDX 2.3 or CycloneDX 1.5 from npm / pnpm / pip / go.mod manifests | stdout (or `--output <path>` atomic) | `EX_OK` on success, `EX_DATAERR` on manifest-detection failure |
+| `scan <project-dir>` | Correlate against offline OSV cache, emit SARIF 2.1.0 + stderr summary | stdout SARIF + stderr table | `EX_OK` unless `--fail-on <levels>` matches a finding |
+| `report <project-dir>` | Generate per-regulation compliance report (appi-26-2 / meti-sbom-v2 / ntia / eu-cra) | stdout text | `EX_USAGE` if `--standard` missing |
+| `suggest <advisory-id>` | Free-text upgrade suggestion via local LLM (Ollama default, mock fallback) | stdout text | `EX_OK` on success, `EX_TEMPFAIL` on provider misconfig |
+
+All subcommands ship a `--help` listing. Try `sbom-pilot <subcommand> --help`.
+
+Global flags: `--no-color` strips ANSI escapes from stdout/stderr;
+`-q` / `--quiet` suppresses informational stderr (errors still
+surface); `-V` / `--version` prints the version string.
+
+## 4. Architecture
+
+5-layer one-way dependency direction (per ADR-0006):
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Layer 5 — CLI                                          │
+│  src/cli/ + bin/sbom-pilot.ts                          │
+│  commander setup, exit codes, --help, did-you-mean,    │
+│  --version, output sanitization                        │
+├─────────────────────────────────────────────────────────┤
+│  Layer 4 — Emitters                                     │
+│  src/emitters/                                          │
+│  spdx-2.3.ts / cyclonedx-1.5.ts / sarif-2.1.0.ts        │
+│  compliance/{appi-26-2,meti-sbom-v2,ntia,eu-cra}.ts     │
+├─────────────────────────────────────────────────────────┤
+│  Layer 3 — Scanners                                     │
+│  src/scanners/                                          │
+│  vuln-db.ts / correlator.ts / severity.ts               │
+├─────────────────────────────────────────────────────────┤
+│  Layer 2 — IR (intermediate representation)             │
+│  src/ir/                                                │
+│  sbom-ir.ts / schemas.ts (zod) / severity.ts (vocab)    │
+├─────────────────────────────────────────────────────────┤
+│  Layer 1 — Parsers                                      │
+│  src/parsers/                                           │
+│  npm.ts / pnpm.ts / pip.ts / go-mod.ts                  │
+└─────────────────────────────────────────────────────────┘
+
+  Side modules:
+    src/providers/llm/  — Ollama, mock, paid-API defense stub
+    src/schemas/        — vendored SPDX / CycloneDX / SARIF JSON schemas
+    src/util/           — atomic write, ANSI strip, credential scrub
+    src/exit-codes.ts   — sysexits enum
+```
+
+**Direction**: CLI → Emitters → IR ← Scanners ← Parsers. Five
+literal forbidden edges (Parsers→Emitters, Scanners→Parsers,
+IR→anything, Emitters→Scanners, anything→CLI) are CI-gated via
+`dependency-cruiser` (`.dependency-cruiser.cjs`). See
+[`docs/adr/0006-module-boundary.md`](docs/adr/0006-module-boundary.md)
+for the full rationale.
+
+### Tech stack (literal lock, per ADR-0002)
+
+| Layer | Choice | Why |
+|---|---|---|
+| Language | TypeScript (strict + `exactOptionalPropertyTypes`) | Sibling reusable patterns; zod + ajv ecosystem maturity |
+| Runtime | Node.js 20 LTS | LTS coverage through 2026-04; `engines.node` enforced |
+| Package manager | pnpm 10 | Lockfile committed, `--frozen-lockfile` in CI, audit-gate in workflow |
+| Test framework | vitest 3 | ESM-native, TS first-class, snapshot built-in |
+| CLI parser | commander 13 | Mature, MIT-licensed, sysexits-compatible exit override |
+| Schema validation | ajv 8 + ajv-formats | RFC-compliant JSON schema 2020-12 + format validators |
+| Runtime validation | zod 3 | Type-narrowing parser for IR-shape gating |
+
+## 5. Compliance support
+
+Four reports are first-class, each with golden fixtures and SARIF-
+gating where applicable:
+
+| Standard | Output language | AC-ID | Reference |
+|---|---|---|---|
+| 改正個情法 第26条の2 | Japanese | AC-003-1 + AC-003-7 | 個人情報保護委員会 ガイドライン |
+| METI ソフトウェア管理に向けた SBOM 導入手引き v2.0 | Japanese | AC-003-2 | METI 2024-08 publication |
+| NTIA Minimum Elements | English | AC-003-3 | U.S. EO 14028 / NTIA 2021 |
+| EU Cyber Resilience Act Annex I | English | AC-003-4 | Regulation (EU) 2024/2847 |
+
+Each compliance emitter is independently testable; the
+`tests/golden/compliance/` corpus pins the output shape so a
+regulatory drift is caught at PR review, not at audit time.
+
+## 6. Paid-API + supply-chain defense
+
+The project is built around four code-level defenses plus two
+architectural constraints (per ADR-0002 §"Tradeoffs accepted" + spec.md
+§10.5 AC-NF-1..6, matching the inline comment in
+[src/providers/llm/paid-defense.ts](src/providers/llm/paid-defense.ts)):
+
+1. **Constructor gate** — a paid LLM provider is only instantiable when
+   both `<PROVIDER>_API_KEY` *and* `SBOM_PILOT_LLM_PROVIDER=<provider>`
+   are present in the environment. Either alone refuses construction.
+2. **Pre-flight reserve** — three ceilings (token / request / cost USD)
+   plus a poisoned-state flag block silent runaway.
+3. **Key non-leak** — error messages mask the API key to its first 6
+   characters; stack-trace dumps never surface the secret.
+4. **CI auto-call ban** — under `CI=true` or any `*_TEST_*` env, the
+   global `fetch` is trapped and throws on the first un-stubbed call.
+   A regression test (`tests/regression/paid-api-blocking.test.ts`)
+   asserts this stays wired.
+5. **Default provider = mock** — every subcommand entry point falls
+   back to the mock provider when no LLM is configured, so the CLI
+   works offline by default.
+6. **No-credit-card-required** — every dependency (runtime + CI + LLM)
+   has a documented free tier sufficient for the project. No path in
+   the codebase reads from a paid service without an explicit user
+   opt-in.
+
+Supply-chain hygiene additions:
+
+- `pnpm install --frozen-lockfile` in CI (3-OS matrix).
+- `pnpm audit --audit-level=high` is a CI gate.
+- `dependency-cruiser` lints the 5 forbidden architectural edges.
+- OpenSSF Scorecard + CodeQL + Dependabot are wired (PUBLIC flip
+  activates SARIF publication to the Security tab automatically).
+- Pre-commit hook (`scripts/check_forbidden_tokens.py`) blocks the
+  channel-B mask list before commit.
+
+## 7. Security
+
+See [`SECURITY.md`](SECURITY.md) for the coordinated-disclosure policy
+and supported-version table.
+
+Operational hardening:
+
+- **Atomic writes** — every emitter writes via `atomicWrite()`
+  (temp-rename pattern). A mid-write process kill leaves zero partial
+  files on disk.
+- **Credential scrubbing** — `src/util/credential-scrub.ts` masks
+  `Bearer …`, `AWS_…`, `*_KEY=…`, `password=…` patterns at the
+  emitter boundary. Direct lesson from CVE-2025-65965 (grype
+  GHSA-6gxw-85q2-q646 registry credential disclosure); see
+  [`NOTICE`](NOTICE) §1.
+- **Cosign gate on opt-in subprocess** — `--use-syft` and
+  `--use-grype` (T-39) verify the local Anchore binary's cosign
+  signature before spawning. Verification failure → `EX_NOPERM`,
+  no subprocess.
+
+## 8. Development
+
+Prerequisites: Node.js ≥ 20, pnpm ≥ 10. Optional: Ollama
+(`gemma3:4b` recommended) for the `suggest` subcommand's LLM path —
+without it the subcommand falls back to the mock provider.
+
+```bash
+# Install + verify
+pnpm install --frozen-lockfile
+pnpm run typecheck      # tsc --noEmit (strict, exactOptionalPropertyTypes)
+pnpm run test           # 607 vitest specs (47 test files)
+pnpm run test:coverage  # with v8 coverage thresholds (line/function/statement ≥ 90, branch ≥ 85)
+pnpm run lint:deps      # ADR-0006 5-edge dependency-cruiser lint
+pnpm run audit          # pnpm audit --audit-level=high
+pnpm run build          # tsc -p tsconfig.build.json → dist/
+```
+
+Repository layout:
+
+```
+.
+├── bin/                 # CLI entry shebang (sbom-pilot.ts)
+├── src/                 # 5-layer source (per ADR-0006)
+├── tests/               # unit + e2e + regression + golden corpora
+├── docs/adr/            # 7 ADRs (0001-0007, all Accepted)
+├── scripts/             # python pre-commit + vuln-db refresh
+├── .github/workflows/   # ci + scorecard + codeql
+├── .claude/             # PJ-internal notes
+├── spec.md              # Spec SSoT (Stage 1 Discovery output, dated 2026-05-19; Stage 2-4 work captured in tasks.md + docs/adr/)
+├── tasks.md             # L0-L9 40-task breakdown
+├── CHANGELOG.md         # Keep-a-Changelog format
+├── NOTICE               # Apache-2.0 attributions (Anchore prior-art + schemas)
+└── LICENSE              # MIT
+```
+
+Design history lives under `docs/adr/` (one Markdown file per
+decision, in the [ADR pattern by Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)).
+Each ADR is dated and contains its decision context, rationale,
+alternatives considered, tradeoffs accepted, and reversibility note.
+
+## 9. Testing
+
+Test pyramid:
+
+- **Unit** (`tests/unit/`) — pure-function, fixture-driven, parser
+  + IR + emitter + scanner + CLI surface.
+- **Golden** (`tests/golden/`) — pinned output snapshots for each
+  SBOM/SARIF/compliance emitter. Regenerate intentionally; do not
+  auto-overwrite.
+- **E2E** (`tests/e2e/`) — `cli-help` / `cli-sbom` / `cli-scan` /
+  `cli-report` / `cli-suggest` invoke the CLI from a shell-like
+  context and assert on stdout + exit code + atomic-write effects.
+- **Regression** (`tests/regression/`) — paid-API CI auto-call ban
+  is locked in as a regression suite (`paid-api-blocking.test.ts`).
+- **Lint** (`tests/unit/lint/`) — `dependency-direction.test.ts`
+  creates a synthetic parser→emitter import in a tmp dir and asserts
+  the dependency-cruiser CLI exits non-zero with the literal rule
+  name, proving the gate is active.
+
+The 3-OS CI matrix (Ubuntu / macOS / Windows) runs typecheck →
+test:coverage → lint:deps → audit on every PR + push to main.
+
+## What this exercise validated
+
+Three things turned out to be worth defending in this Phase α build.
+
+**First, the four-constraint set is operative, not decorative.** Every
+dependency, every CI gate, and every default code path holds against the
+constraints stated at the top of this README — `pnpm audit
+--audit-level=high` is a CI gate, the paid-API constructor refuses to
+instantiate without both env vars
+([src/providers/llm/paid-defense.ts](src/providers/llm/paid-defense.ts) +
+[ADR-0002](docs/adr/0002-stack-typescript.md) §Tradeoffs accepted), the
+`suggest` subcommand falls back to mock when Ollama is absent, and no
+runtime path reads from a credit-card-required service. A reviewer can
+clone this repo, run with `$0` spend, and verify each constraint by
+literal `grep` against the lockfile + workflows.
+
+**Second, the SBOM-to-compliance pipeline is shaped by the regulations,
+not by tooling availability.** The four compliance reports (改正個情法
+26-2 / METI SBOM v2.0 / NTIA Minimum Elements / EU CRA Annex I) each
+have a dedicated emitter under `src/emitters/compliance/` and a
+golden-fixture corpus under `tests/golden/compliance/`. Regulatory drift
+surfaces at PR review (snapshot diff) rather than at audit time. The
+5-layer module boundary ([ADR-0006](docs/adr/0006-module-boundary.md))
+was chosen specifically so that adding a fifth regulation later would
+touch one emitter file, not the parser or scanner layers.
+
+**Third, the Phase α stops where the maintained alternatives start.**
+`anchore/syft` and `anchore/grype` (and `aquasecurity/trivy`) remain the
+right call for production-scale supply-chain operations — this repo's
+Phase α PoC notice in the next section is explicit about that boundary.
+What `sbom-pilot` adds is the four-regulation compliance layer + the
+paid-API defense pattern + the offline-first default — wired and tested
+at 607 vitest specs across the 5-layer architecture, runnable on a
+consumer laptop with zero monthly cost. That delineation is the wedge,
+not a substitute claim.
+
+## 10. License + attribution
+
+- **License**: [MIT](LICENSE) © 2026 tomohiro takada.
+- **Third-party attribution**: see [`NOTICE`](NOTICE) for the literal
+  Apache-2.0 §4(d) acknowledgement covering Anchore prior-art
+  (syft + grype), vendored SPDX / CycloneDX / SARIF JSON schemas, and
+  runtime npm dependency licensing snapshots.
+- **Disclosure policy**: see [`SECURITY.md`](SECURITY.md).
+- **Phase α PoC notice**: this is a Phase α portfolio project,
+  developed as a focused implementation sprint over a short window
+  (the L0..L9 layer build sits on top of a Stage 1-4 spec-driven
+  workflow whose deliverables — `spec.md`, `tasks.md`, `docs/adr/`
+  — predate the implementation commits). For production deployments
+  at scale, evaluate the maintained alternatives (`anchore/syft` +
+  `anchore/grype`, `aquasecurity/trivy`) and contract a vendor or
+  in-house security team for ongoing remediation tracking.
+  `sbom-pilot` produces the deliverables; it does not replace the
+  security operations workflow that consumes them.
+
+---
+
+Built by [tomohiro takada](https://github.com/leagames0221-sys) — AI
+developer / full-stack engineer. Companion to
+[mcp-guard](https://github.com/leagames0221-sys/mcp-guard), an MCP
+server security scanner from the same Phase α defensive-tooling
+sprint.

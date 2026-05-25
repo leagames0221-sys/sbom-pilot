@@ -3,7 +3,7 @@
 > Recurring architectural / coding patterns adopted in this PJ.
 > Reference target during implementation to avoid pattern drift.
 
-## Sibling-tool inheritance (security tool #1 → sbom-pilot)
+## Sibling-tool inheritance (mcp-guard → sbom-pilot)
 
 `sbom-pilot` is the second tool in a sibling pair (first = MCP-server security
 scanner, sibling product `mcp-guard`). Patterns proven in the sibling are
@@ -18,10 +18,8 @@ inherited verbatim unless an explicit ADR documents the deviation.
 | sysexits-aligned CLI exit codes | `src/cli/exit_codes.ts` | Stage 4 task |
 | Sequential probe runner with AbortSignal | `src/harness/sequential.ts` | Stage 4 task (renamed for scanner sequencing) |
 | Detector dispatch verdict aggregation | `src/detectors/dispatch.ts` | Stage 4 task |
-| Channel B forbidden-token mask hook (pre-commit) | `scripts/check_mask.ts` | Stage 4 task (Python rewrite, stdlib-only) |
 | paid-API 6-layer defense | `src/providers/llm/paid.ts` | Stage 4 task |
 | ADR-driven design log | `docs/adr/*.md` | Active (this PJ) |
-| Cline 5-file memory bank | `.claude/memory_bank/*.md` | Active (this PJ) |
 
 ### Reasons to deviate (require ADR)
 

@@ -52,6 +52,4 @@ strong on raw scanning but weak on:
 - Generates valid SPDX 2.3 + CycloneDX 1.5 from at least one major package ecosystem (locked at Discovery)
 - Correlates with OSV / NVD / GHSA cached snapshots
 - Emits at least one JP-compliance report (改正個情法 26-2 or METI SBOM v2.0)
-- All 7 binary criteria from the canonical tier rubric apply with full PASS
 - Writer/Reviewer 2-round verify with CONFIRM verdict
-- User explicit promotion to PUBLIC + portfolio inclusion
