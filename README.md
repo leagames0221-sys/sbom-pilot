@@ -318,7 +318,7 @@ Repository layout:
 ├── docs/adr/            # 7 ADRs (0001-0007, all Accepted)
 ├── scripts/             # python pre-commit + vuln-db refresh
 ├── .github/workflows/   # ci + scorecard + codeql
-├── .claude/             # PJ-internal memory bank (Tier 2, gitignored)
+├── .claude/             # PJ-internal notes
 ├── spec.md              # Spec SSoT (Stage 1 Discovery output, dated 2026-05-19; Stage 2-4 work captured in tasks.md + docs/adr/)
 ├── tasks.md             # L0-L9 40-task breakdown
 ├── CHANGELOG.md         # Keep-a-Changelog format
