@@ -46,8 +46,8 @@
   "devDependencies": {
     "@types/node": "^25.9.1",
     "@vitest/coverage-v8": "^4.1.7",
-    "dependency-cruiser": "^17.4.2",
-    "tsx": "^4.19.2",
+    "dependency-cruiser": "^17.4.3",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
   },
