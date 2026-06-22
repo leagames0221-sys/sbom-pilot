@@ -50,7 +50,7 @@ jobs:
           fi
 
       - if: steps.visibility.outputs.skip != 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Initialize CodeQL
         if: steps.visibility.outputs.skip != 'true'
